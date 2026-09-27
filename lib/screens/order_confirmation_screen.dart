@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../theme.dart';
+import '../widgets/order_summary_row.dart';
+import '../widgets/order_total_card.dart';
+import '../widgets/queue_number_card.dart';
+import 'order_status_screen.dart';
+
 class OrderConfirmationScreen extends StatelessWidget {
   final List<Map<String, dynamic>> menuItems;
   final Map<String, int> cart;
@@ -34,141 +40,140 @@ class OrderConfirmationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF8EF),
       body: SafeArea(
         child: Column(
           children: [
             _buildHeader(context),
-
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(
-                  24,
-                  12,
-                  24,
-                  24,
+                  AppSpacing.lg,
+                  AppSpacing.sm,
+                  AppSpacing.lg,
+                  AppSpacing.lg,
                 ),
                 children: [
                   const Icon(
                     Icons.check_circle_rounded,
                     size: 64,
-                    color: Color(0xFF29A500),
+                    color: AppStatusColors.ready,
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
 
-                  const Text(
+                  Text(
                     'Order Confirmed',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
+                    style: theme.textTheme.headlineSmall,
                   ),
 
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.sm),
 
-                  const Text(
+                  Text(
                     'Your order has been received.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF666666),
-                    ),
+                    style: theme.textTheme.bodyMedium,
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.lg),
 
-                  _buildQueueCard(),
+                  const QueueNumberCard(
+                    queueNumber: '067',
+                    tableNumber: '02',
+                  ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.lg),
 
-                  const Text(
+                  Text(
                     'Order Summary',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF290E07),
-                    ),
+                    style: theme.textTheme.titleMedium,
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
 
-                  ...orderedItems.map(_buildOrderItem),
+                  ...orderedItems.map((item) {
+                    final String name = item['name'];
+                    final int quantity = cart[name] ?? 0;
+                    final double subtotal =
+                        item['price'] * quantity;
 
-                  const SizedBox(height: 16),
+                    return OrderSummaryRow(
+                      name: name,
+                      quantity: quantity,
+                      subtotal: subtotal,
+                    );
+                  }),
 
-                  _buildTotalCard(),
+                  const SizedBox(height: AppSpacing.md),
+
+                  OrderTotalCard(
+                    total: totalPrice,
+                  ),
 
                   if (customerNotes.trim().isNotEmpty) ...[
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.lg),
 
-                    const Text(
+                    Text(
                       'Customer Notes',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF290E07),
-                      ),
+                      style: theme.textTheme.bodyLarge,
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
 
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.surfaceContainer,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: const Color(0xFFE4E0DB),
+                          color: AppColors.border,
                         ),
                       ),
                       child: Text(
                         customerNotes,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF666666),
-                        ),
+                        style: theme.textTheme.bodyMedium,
                       ),
                     ),
                   ],
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: AppSpacing.xl),
 
                   SizedBox(
                     height: 48,
                     child: ElevatedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Order Status screen will be connected next.',
-                            ),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const OrderStatusScreen(),
                           ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFAE3C00),
-                        foregroundColor: Colors.white,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor:
+                            theme.colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Track Order',
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
 
                   TextButton(
                     onPressed: () {
@@ -177,10 +182,11 @@ class OrderConfirmationScreen extends StatelessWidget {
                         (route) => route.isFirst,
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'Back to Home',
-                      style: TextStyle(
-                        color: Color(0xFFAE3C00),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -194,8 +200,15 @@ class OrderConfirmationScreen extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.xs,
+      ),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -205,139 +218,18 @@ class OrderConfirmationScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.pop(context);
               },
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_back_ios_new_rounded,
                 size: 20,
-                color: Color(0xFF290E07),
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ),
-          const Text(
+          Text(
             'TableTap',
-            style: TextStyle(
-              fontSize: 18,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.primary,
               fontWeight: FontWeight.w700,
-              color: Color(0xFFAE3C00),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQueueCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: const Color(0xFFE4E0DB),
-        ),
-      ),
-      child: const Column(
-        children: [
-          Text(
-            'Your Queue Number',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF666666),
-            ),
-          ),
-
-          SizedBox(height: 6),
-
-          Text(
-            '067',
-            style: TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFFAE3C00),
-            ),
-          ),
-
-          SizedBox(height: 4),
-
-          Text(
-            'Table 02',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF290E07),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrderItem(Map<String, dynamic> item) {
-    final String name = item['name'];
-    final int quantity = cart[name] ?? 0;
-    final double subtotal = item['price'] * quantity;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: const Color(0xFFE4E0DB),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              '${quantity}x ${name.replaceAll('\n', ' ')}',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF290E07),
-              ),
-            ),
-          ),
-          Text(
-            '₱${subtotal.toStringAsFixed(2)}',
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFFAE3C00),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTotalCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: const Color(0xFFE4E0DB),
-        ),
-      ),
-      child: Row(
-        children: [
-          const Text(
-            'Total',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF290E07),
-            ),
-          ),
-          const Spacer(),
-          Text(
-            '₱${totalPrice.toStringAsFixed(2)}',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFFAE3C00),
             ),
           ),
         ],

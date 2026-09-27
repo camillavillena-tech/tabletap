@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'screens/role_selection_screen.dart';
+import 'theme.dart';
 
 void main() {
   runApp(const TableTapApp());
@@ -13,13 +15,7 @@ class TableTapApp extends StatelessWidget {
     return MaterialApp(
       title: 'TableTap',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFAE3C00),
-        ),
-        scaffoldBackgroundColor: const Color(0xFFFDF8EF),
-      ),
+      theme: tableTapTheme,
       home: const RoleSelectionScreen(),
     );
   }
