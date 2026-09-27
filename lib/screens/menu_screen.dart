@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+
+import '../data/menu_data.dart';
+import '../widgets/app_bottom_nav.dart';
+import '../widgets/menu_category_bar.dart';
+import '../widgets/menu_item_card.dart';
 import 'cart_screen.dart';
 
 class MenuScreen extends StatefulWidget {
@@ -9,81 +14,36 @@ class MenuScreen extends StatefulWidget {
 }
 
 class _MenuScreenState extends State<MenuScreen> {
-  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController =
+      TextEditingController();
 
   String selectedCategory = 'All';
-
-  final List<String> categories = [
-    'All',
-    'Ramen',
-    'Maki',
-    'Drinks',
-    'Add-ons',
-  ];
-
-  final List<Map<String, dynamic>> menuItems = [
-    {
-      'name': 'Original Tonkotsu\nRamen',
-      'category': 'Ramen',
-      'price': 245.00,
-      'icon': Icons.ramen_dining,
-    },
-    {
-      'name': 'Midori Ramen',
-      'category': 'Ramen',
-      'price': 245.00,
-      'icon': Icons.ramen_dining,
-    },
-    {
-      'name': 'Aka Ramen',
-      'category': 'Ramen',
-      'price': 245.00,
-      'icon': Icons.ramen_dining,
-    },
-    {
-      'name': 'Tamago Maki',
-      'category': 'Maki',
-      'price': 195.00,
-      'icon': Icons.set_meal,
-    },
-    {
-      'name': 'California Maki',
-      'category': 'Maki',
-      'price': 195.00,
-      'icon': Icons.set_meal,
-    },
-    {
-      'name': 'Iced Tea',
-      'category': 'Drinks',
-      'price': 65.00,
-      'icon': Icons.local_drink,
-    },
-    {
-      'name': 'Extra Egg',
-      'category': 'Add-ons',
-      'price': 35.00,
-      'icon': Icons.egg_alt,
-    },
-  ];
 
   final Map<String, int> cart = {};
 
   List<Map<String, dynamic>> get filteredItems {
-    final search = _searchController.text.trim().toLowerCase();
+    final search =
+        _searchController.text.trim().toLowerCase();
 
     return menuItems.where((item) {
-      final categoryMatches = selectedCategory == 'All' ||
+      final categoryMatches =
+          selectedCategory == 'All' ||
           item['category'] == selectedCategory;
 
-      final searchMatches =
-          item['name'].toString().toLowerCase().contains(search);
+      final searchMatches = item['name']
+          .toString()
+          .toLowerCase()
+          .contains(search);
 
       return categoryMatches && searchMatches;
     }).toList();
   }
 
   int get totalCartItems {
-    return cart.values.fold(0, (total, quantity) => total + quantity);
+    return cart.values.fold(
+      0,
+      (total, quantity) => total + quantity,
+    );
   }
 
   double get cartTotal {
@@ -105,6 +65,64 @@ class _MenuScreenState extends State<MenuScreen> {
     });
   }
 
+  void removeFromCart(String name) {
+    setState(() {
+      final quantity = cart[name] ?? 0;
+
+      if (quantity <= 1) {
+        cart.remove(name);
+      } else {
+        cart[name] = quantity - 1;
+      }
+    });
+  }
+
+  Future<void> openCart() async {
+    if (cart.isEmpty) {
+      return;
+    }
+
+    final updatedCart =
+        await Navigator.push<Map<String, int>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CartScreen(
+          menuItems: menuItems,
+          cart: cart,
+        ),
+      ),
+    );
+
+    if (updatedCart != null) {
+      setState(() {
+        cart
+          ..clear()
+          ..addAll(updatedCart);
+      });
+    }
+  }
+
+  void handleBottomNavigation(int index) {
+    if (index == 0) {
+      return;
+    }
+
+    if (index == 1) {
+      openCart();
+      return;
+    }
+
+    if (index == 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Order Status screen will be added later.',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -115,13 +133,21 @@ class _MenuScreenState extends State<MenuScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF8EF),
-
       body: SafeArea(
         child: Column(
           children: [
             _buildHeader(),
             _buildSearchBar(),
-            _buildCategories(),
+
+            MenuCategoryBar(
+              categories: menuCategories,
+              selectedCategory: selectedCategory,
+              onSelected: (category) {
+                setState(() {
+                  selectedCategory = category;
+                });
+              },
+            ),
 
             const SizedBox(height: 8),
 
@@ -131,14 +157,18 @@ class _MenuScreenState extends State<MenuScreen> {
           ],
         ),
       ),
-
       bottomNavigationBar: _buildBottomSection(),
     );
   }
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 20, 12),
+      padding: const EdgeInsets.fromLTRB(
+        24,
+        16,
+        20,
+        12,
+      ),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -152,7 +182,6 @@ class _MenuScreenState extends State<MenuScreen> {
               ),
             ),
           ),
-
           Align(
             alignment: Alignment.centerRight,
             child: Container(
@@ -179,7 +208,9 @@ class _MenuScreenState extends State<MenuScreen> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 24,
+      ),
       child: SizedBox(
         height: 42,
         child: TextField(
@@ -193,7 +224,8 @@ class _MenuScreenState extends State<MenuScreen> {
               fontSize: 13,
               color: Color(0xFF666666),
             ),
-            contentPadding: const EdgeInsets.symmetric(
+            contentPadding:
+                const EdgeInsets.symmetric(
               horizontal: 16,
             ),
             suffixIcon: const Icon(
@@ -203,13 +235,15 @@ class _MenuScreenState extends State<MenuScreen> {
             filled: true,
             fillColor: Colors.white,
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(9),
+              borderRadius:
+                  BorderRadius.circular(9),
               borderSide: const BorderSide(
                 color: Color(0xFFE8B99F),
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(9),
+              borderRadius:
+                  BorderRadius.circular(9),
               borderSide: const BorderSide(
                 color: Color(0xFFAE3C00),
                 width: 1.5,
@@ -217,57 +251,6 @@ class _MenuScreenState extends State<MenuScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildCategories() {
-    return SizedBox(
-      height: 52,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 34,
-          vertical: 12,
-        ),
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 10),
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          final bool isSelected = category == selectedCategory;
-
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                selectedCategory = category;
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFFED5A00)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                category,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: isSelected
-                      ? FontWeight.w600
-                      : FontWeight.w500,
-                  color: isSelected
-                      ? Colors.white
-                      : const Color(0xFFED5A00),
-                ),
-              ),
-            ),
-          );
-        },
       ),
     );
   }
@@ -292,102 +275,23 @@ class _MenuScreenState extends State<MenuScreen> {
         110,
       ),
       itemCount: filteredItems.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) =>
+          const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final item = filteredItems[index];
+        final String name = item['name'];
 
-        return _buildMenuCard(item);
+        return MenuItemCard(
+          item: item,
+          quantity: cart[name] ?? 0,
+          onAdd: () {
+            addToCart(name);
+          },
+          onRemove: () {
+            removeFromCart(name);
+          },
+        );
       },
-    );
-  }
-
-  Widget _buildMenuCard(Map<String, dynamic> item) {
-    final String name = item['name'];
-
-    return Container(
-      height: 92,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: const Color(0xFFE4E0DB),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x16000000),
-            blurRadius: 3,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 70,
-            height: 70,
-            decoration: const BoxDecoration(
-              color: Color(0xFFFFEEE2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              item['icon'],
-              size: 39,
-              color: const Color(0xFFAE3C00),
-            ),
-          ),
-
-          const SizedBox(width: 12),
-
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                    height: 1.1,
-                  ),
-                ),
-
-                const SizedBox(height: 13),
-
-                Text(
-                  '₱${item['price'].toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFFED5A00),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          GestureDetector(
-            onTap: () {
-              addToCart(name);
-            },
-            child: Container(
-              width: 30,
-              height: 30,
-              decoration: const BoxDecoration(
-                color: Color(0xFFED5A00),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.add,
-                color: Colors.white,
-                size: 23,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -410,32 +314,18 @@ class _MenuScreenState extends State<MenuScreen> {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFED5A00),
-                    borderRadius: BorderRadius.circular(11),
+                    color:
+                        const Color(0xFFED5A00),
+                    borderRadius:
+                        BorderRadius.circular(11),
                   ),
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(11),
-                    onTap: () async {
-                      final updatedCart = await Navigator.push<Map<String, int>>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CartScreen(
-                            menuItems: menuItems,
-                            cart: cart,
-                          ),
-                        ),
-                      );
-
-                      if (updatedCart != null) {
-                        setState(() {
-                          cart
-                            ..clear()
-                            ..addAll(updatedCart);
-                        });
-                      }
-                    },
+                    borderRadius:
+                        BorderRadius.circular(11),
+                    onTap: openCart,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
+                      padding:
+                          const EdgeInsets.symmetric(
                         horizontal: 14,
                       ),
                       child: Row(
@@ -454,7 +344,8 @@ class _MenuScreenState extends State<MenuScreen> {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                              fontWeight:
+                                  FontWeight.w500,
                             ),
                           ),
 
@@ -465,7 +356,8 @@ class _MenuScreenState extends State<MenuScreen> {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                              fontWeight:
+                                  FontWeight.w500,
                             ),
                           ),
                         ],
@@ -475,83 +367,13 @@ class _MenuScreenState extends State<MenuScreen> {
                 ),
               ),
 
-            Container(
-              height: 60,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFDF8EF),
-                border: Border(
-                  top: BorderSide(
-                    color: Color(0xFFE8DDD3),
-                  ),
-                ),
-              ),
-              child: const Row(
-                children: [
-                  Expanded(
-                    child: _BottomNavigationItem(
-                      icon: Icons.home_rounded,
-                      label: 'Menu',
-                      selected: true,
-                    ),
-                  ),
-                  Expanded(
-                    child: _BottomNavigationItem(
-                      icon: Icons.shopping_cart_outlined,
-                      label: 'Cart',
-                    ),
-                  ),
-                  Expanded(
-                    child: _BottomNavigationItem(
-                      icon: Icons.access_time_rounded,
-                      label: 'Status',
-                    ),
-                  ),
-                ],
-              ),
+            AppBottomNav(
+              currentIndex: 0,
+              onTap: handleBottomNavigation,
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _BottomNavigationItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool selected;
-
-  const _BottomNavigationItem({
-    required this.icon,
-    required this.label,
-    this.selected = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = selected
-        ? const Color(0xFFED5A00)
-        : const Color(0xFF726C6C);
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          icon,
-          size: 20,
-          color: color,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight:
-                selected ? FontWeight.w600 : FontWeight.w400,
-            color: color,
-          ),
-        ),
-      ],
     );
   }
 }

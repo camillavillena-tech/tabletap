@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'order_confirmation_screen.dart';
 
 class CartScreen extends StatefulWidget {
   final List<Map<String, dynamic>> menuItems;
@@ -415,10 +416,13 @@ class _CartScreenState extends State<CartScreen> {
           height: 48,
           child: ElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Order Confirmation screen will be connected next.',
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderConfirmationScreen(
+                    menuItems: widget.menuItems,
+                    cart: cart,
+                    customerNotes: _notesController.text.trim(),
                   ),
                 ),
               );
