@@ -7,17 +7,31 @@ Start it in week 1 and keep it up as you go. The commit history of this file is
 part of the evidence: a file written all at once the night before the deadline
 looks exactly like what it is.
 
-## 1. How I used AI
+## 1. How We Used AI
 
-At least six entries. One per real use. Every entry needs a commit link.
+### 2026-09-15 - Customer menu implementation
 
-### YYYY-MM-DD - short title
+- **Tool:** ChatGPT and Claude
+- **What we asked for:** We asked for help building the Customer Menu based on our TableTap mockup and planned customer flow.
+- **What it gave back:** It helped generate the Flutter structure for the menu, including the search bar, category filters, item cards, quantity controls, cart total, and bottom navigation.
+- **What we kept, what we changed, and why:** We kept the general layout and interaction logic, but adjusted the menu items, prices, visual styling, and navigation so they matched our TableTap design and project requirements.
+- **Commit:** https://github.com/thebeancheese/tabletap/commit/8fb2c43
 
-- **Tool:**
-- **What I asked for:**
-- **What it gave back:**
-- **What I kept, what I changed, and why:**
-- **Commit:** https://github.com/YOUR-USERNAME/YOUR-REPO/commit/SHA
+### 2026-09-15 - Staff login and dashboard flow
+
+- **Tool:** ChatGPT and Claude
+- **What we asked for:** We asked for help adding the Staff side of the app, starting with a login screen and a basic dashboard.
+- **What it gave back:** It generated a Staff Login screen with demo credentials and a placeholder Incoming Orders screen.
+- **What we kept, what we changed, and why:** We kept the demo login flow because we did not need real authentication for the prototype. We also kept the dashboard as a placeholder at first because the shared order data had not been implemented yet.
+- **Commit:** https://github.com/thebeancheese/tabletap/commit/7e52ab1
+
+### 2026-09-24 - Cart screen and reusable menu components
+
+- **Tool:** ChatGPT and Claude
+- **What we asked for:** We asked for help continuing the Customer flow by adding a Cart screen and reducing the size of the Menu screen.
+- **What it gave back:** It provided a Cart implementation with quantity controls, totals, customer notes, and reusable widgets for the Menu.
+- **What we kept, what we changed, and why:** We kept the Cart behavior and reusable widget approach. We changed parts of the structure because some files were becoming too large, and we wanted the screen logic and reusable UI to be easier to manage.
+- **Commit:** https://github.com/thebeancheese/tabletap/commit/4902a32
 
 ## 2. Where the AI got it wrong
 
