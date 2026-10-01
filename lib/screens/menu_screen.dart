@@ -5,44 +5,57 @@ import '../widgets/app_bottom_nav.dart';
 import '../widgets/menu_category_bar.dart';
 import '../widgets/menu_item_card.dart';
 import 'cart_screen.dart';
+import 'customer_orders_screen.dart';
 
 class MenuScreen extends StatefulWidget {
-  const MenuScreen({super.key});
+  const MenuScreen({
+    super.key,
+  });
 
   @override
-  State<MenuScreen> createState() => _MenuScreenState();
+  State<MenuScreen> createState() =>
+      _MenuScreenState();
 }
 
-class _MenuScreenState extends State<MenuScreen> {
-  final TextEditingController _searchController =
+class _MenuScreenState
+    extends State<MenuScreen> {
+  final TextEditingController
+      _searchController =
       TextEditingController();
 
   String selectedCategory = 'All';
 
   final Map<String, int> cart = {};
 
-  List<Map<String, dynamic>> get filteredItems {
-    final search =
-        _searchController.text.trim().toLowerCase();
+  List<Map<String, dynamic>>
+      get filteredItems {
+    final search = _searchController
+        .text
+        .trim()
+        .toLowerCase();
 
     return menuItems.where((item) {
       final categoryMatches =
           selectedCategory == 'All' ||
-          item['category'] == selectedCategory;
+              item['category'] ==
+                  selectedCategory;
 
-      final searchMatches = item['name']
-          .toString()
-          .toLowerCase()
-          .contains(search);
+      final searchMatches =
+          item['name']
+              .toString()
+              .toLowerCase()
+              .contains(search);
 
-      return categoryMatches && searchMatches;
+      return categoryMatches &&
+          searchMatches;
     }).toList();
   }
 
   int get totalCartItems {
     return cart.values.fold(
       0,
-      (total, quantity) => total + quantity,
+      (total, quantity) =>
+          total + quantity,
     );
   }
 
@@ -50,10 +63,14 @@ class _MenuScreenState extends State<MenuScreen> {
     double total = 0;
 
     for (final item in menuItems) {
-      final String name = item['name'];
-      final int quantity = cart[name] ?? 0;
+      final String name =
+          item['name'];
 
-      total += item['price'] * quantity;
+      final int quantity =
+          cart[name] ?? 0;
+
+      total +=
+          item['price'] * quantity;
     }
 
     return total;
@@ -61,18 +78,23 @@ class _MenuScreenState extends State<MenuScreen> {
 
   void addToCart(String name) {
     setState(() {
-      cart[name] = (cart[name] ?? 0) + 1;
+      cart[name] =
+          (cart[name] ?? 0) + 1;
     });
   }
 
-  void removeFromCart(String name) {
+  void removeFromCart(
+    String name,
+  ) {
     setState(() {
-      final quantity = cart[name] ?? 0;
+      final quantity =
+          cart[name] ?? 0;
 
       if (quantity <= 1) {
         cart.remove(name);
       } else {
-        cart[name] = quantity - 1;
+        cart[name] =
+            quantity - 1;
       }
     });
   }
@@ -83,10 +105,12 @@ class _MenuScreenState extends State<MenuScreen> {
     }
 
     final updatedCart =
-        await Navigator.push<Map<String, int>>(
+        await Navigator.push<
+            Map<String, int>>(
       context,
       MaterialPageRoute(
-        builder: (context) => CartScreen(
+        builder: (context) =>
+            CartScreen(
           menuItems: menuItems,
           cart: cart,
         ),
@@ -102,7 +126,20 @@ class _MenuScreenState extends State<MenuScreen> {
     }
   }
 
-  void handleBottomNavigation(int index) {
+  Future<void>
+      openOrderStatus() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            const CustomerOrdersScreen(),
+      ),
+    );
+  }
+
+  void handleBottomNavigation(
+    int index,
+  ) {
     if (index == 0) {
       return;
     }
@@ -113,13 +150,7 @@ class _MenuScreenState extends State<MenuScreen> {
     }
 
     if (index == 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Order Status screen will be added later.',
-          ),
-        ),
-      );
+      openOrderStatus();
     }
   }
 
@@ -130,74 +161,99 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF8EF),
+      backgroundColor:
+          const Color(0xFFFDF8EF),
       body: SafeArea(
         child: Column(
           children: [
             _buildHeader(),
+
             _buildSearchBar(),
 
             MenuCategoryBar(
-              categories: menuCategories,
-              selectedCategory: selectedCategory,
-              onSelected: (category) {
+              categories:
+                  menuCategories,
+              selectedCategory:
+                  selectedCategory,
+              onSelected:
+                  (category) {
                 setState(() {
-                  selectedCategory = category;
+                  selectedCategory =
+                      category;
                 });
               },
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(
+              height: 8,
+            ),
 
             Expanded(
-              child: _buildMenuList(),
+              child:
+                  _buildMenuList(),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomSection(),
+      bottomNavigationBar:
+          _buildBottomSection(),
     );
   }
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
+      padding:
+          const EdgeInsets.fromLTRB(
         24,
         16,
         20,
         12,
       ),
       child: Stack(
-        alignment: Alignment.center,
+        alignment:
+            Alignment.center,
         children: [
           const Center(
             child: Text(
               'TableTap',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFFED5A00),
+                fontWeight:
+                    FontWeight.w700,
+                color:
+                    Color(0xFFED5A00),
               ),
             ),
           ),
+
           Align(
-            alignment: Alignment.centerRight,
+            alignment:
+                Alignment.centerRight,
             child: Container(
               width: 34,
               height: 34,
-              decoration: BoxDecoration(
+              decoration:
+                  BoxDecoration(
                 color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFFE5E5E5),
+                shape:
+                    BoxShape.circle,
+                border:
+                    Border.all(
+                  color: const Color(
+                    0xFFE5E5E5,
+                  ),
                 ),
               ),
               child: const Icon(
-                Icons.notifications_none_rounded,
+                Icons
+                    .notifications_none_rounded,
                 size: 20,
-                color: Color(0xFF290E07),
+                color:
+                    Color(0xFF290E07),
               ),
             ),
           ),
@@ -208,44 +264,61 @@ class _MenuScreenState extends State<MenuScreen> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(
+      padding:
+          const EdgeInsets.symmetric(
         horizontal: 24,
       ),
       child: SizedBox(
         height: 42,
         child: TextField(
-          controller: _searchController,
+          controller:
+              _searchController,
           onChanged: (_) {
             setState(() {});
           },
-          decoration: InputDecoration(
-            hintText: 'Search menu...',
-            hintStyle: const TextStyle(
+          decoration:
+              InputDecoration(
+            hintText:
+                'Search menu...',
+            hintStyle:
+                const TextStyle(
               fontSize: 13,
-              color: Color(0xFF666666),
+              color:
+                  Color(0xFF666666),
             ),
             contentPadding:
-                const EdgeInsets.symmetric(
+                const EdgeInsets
+                    .symmetric(
               horizontal: 16,
             ),
-            suffixIcon: const Icon(
+            suffixIcon:
+                const Icon(
               Icons.search_rounded,
-              color: Color(0xFFED5A00),
+              color:
+                  Color(0xFFED5A00),
             ),
             filled: true,
             fillColor: Colors.white,
-            enabledBorder: OutlineInputBorder(
+            enabledBorder:
+                OutlineInputBorder(
               borderRadius:
-                  BorderRadius.circular(9),
-              borderSide: const BorderSide(
-                color: Color(0xFFE8B99F),
+                  BorderRadius
+                      .circular(9),
+              borderSide:
+                  const BorderSide(
+                color:
+                    Color(0xFFE8B99F),
               ),
             ),
-            focusedBorder: OutlineInputBorder(
+            focusedBorder:
+                OutlineInputBorder(
               borderRadius:
-                  BorderRadius.circular(9),
-              borderSide: const BorderSide(
-                color: Color(0xFFAE3C00),
+                  BorderRadius
+                      .circular(9),
+              borderSide:
+                  const BorderSide(
+                color:
+                    Color(0xFFAE3C00),
                 width: 1.5,
               ),
             ),
@@ -261,29 +334,40 @@ class _MenuScreenState extends State<MenuScreen> {
         child: Text(
           'No menu items found.',
           style: TextStyle(
-            color: Color(0xFF666666),
+            color:
+                Color(0xFF666666),
           ),
         ),
       );
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(
+      padding:
+          const EdgeInsets.fromLTRB(
         24,
         4,
         24,
         110,
       ),
-      itemCount: filteredItems.length,
-      separatorBuilder: (_, _) =>
-          const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final item = filteredItems[index];
-        final String name = item['name'];
+      itemCount:
+          filteredItems.length,
+      separatorBuilder:
+          (_, _) =>
+              const SizedBox(
+        height: 12,
+      ),
+      itemBuilder:
+          (context, index) {
+        final item =
+            filteredItems[index];
+
+        final String name =
+            item['name'];
 
         return MenuItemCard(
           item: item,
-          quantity: cart[name] ?? 0,
+          quantity:
+              cart[name] ?? 0,
           onAdd: () {
             addToCart(name);
           },
@@ -297,15 +381,19 @@ class _MenuScreenState extends State<MenuScreen> {
 
   Widget _buildBottomSection() {
     return Container(
-      color: const Color(0xFFFDF8EF),
+      color:
+          const Color(0xFFFDF8EF),
       child: SafeArea(
         top: false,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize:
+              MainAxisSize.min,
           children: [
             if (totalCartItems > 0)
               Padding(
-                padding: const EdgeInsets.fromLTRB(
+                padding:
+                    const EdgeInsets
+                        .fromLTRB(
                   24,
                   8,
                   24,
@@ -313,39 +401,61 @@ class _MenuScreenState extends State<MenuScreen> {
                 ),
                 child: Container(
                   height: 48,
-                  decoration: BoxDecoration(
+                  decoration:
+                      BoxDecoration(
                     color:
-                        const Color(0xFFED5A00),
+                        const Color(
+                      0xFFED5A00,
+                    ),
                     borderRadius:
-                        BorderRadius.circular(11),
+                        BorderRadius
+                            .circular(
+                      11,
+                    ),
                   ),
                   child: InkWell(
                     borderRadius:
-                        BorderRadius.circular(11),
+                        BorderRadius
+                            .circular(
+                      11,
+                    ),
                     onTap: openCart,
                     child: Padding(
                       padding:
-                          const EdgeInsets.symmetric(
-                        horizontal: 14,
+                          const EdgeInsets
+                              .symmetric(
+                        horizontal:
+                            14,
                       ),
                       child: Row(
                         children: [
                           const Icon(
-                            Icons.shopping_cart,
-                            color: Colors.white,
+                            Icons
+                                .shopping_cart,
+                            color:
+                                Colors
+                                    .white,
                             size: 21,
                           ),
 
-                          const SizedBox(width: 7),
+                          const SizedBox(
+                            width: 7,
+                          ),
 
                           Text(
-                            'View Cart ($totalCartItems '
+                            'View Cart '
+                            '($totalCartItems '
                             '${totalCartItems == 1 ? 'item' : 'items'})',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
+                            style:
+                                const TextStyle(
+                              color:
+                                  Colors
+                                      .white,
+                              fontSize:
+                                  13,
                               fontWeight:
-                                  FontWeight.w500,
+                                  FontWeight
+                                      .w500,
                             ),
                           ),
 
@@ -353,11 +463,16 @@ class _MenuScreenState extends State<MenuScreen> {
 
                           Text(
                             '₱${cartTotal.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
+                            style:
+                                const TextStyle(
+                              color:
+                                  Colors
+                                      .white,
+                              fontSize:
+                                  12,
                               fontWeight:
-                                  FontWeight.w500,
+                                  FontWeight
+                                      .w500,
                             ),
                           ),
                         ],
@@ -369,7 +484,8 @@ class _MenuScreenState extends State<MenuScreen> {
 
             AppBottomNav(
               currentIndex: 0,
-              onTap: handleBottomNavigation,
+              onTap:
+                  handleBottomNavigation,
             ),
           ],
         ),

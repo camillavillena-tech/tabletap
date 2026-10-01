@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/order.dart';
 import '../theme.dart';
 import '../widgets/order_summary_row.dart';
 import '../widgets/order_total_card.dart';
@@ -7,36 +8,12 @@ import '../widgets/queue_number_card.dart';
 import 'order_status_screen.dart';
 
 class OrderConfirmationScreen extends StatelessWidget {
-  final List<Map<String, dynamic>> menuItems;
-  final Map<String, int> cart;
-  final String customerNotes;
+  final Order order;
 
   const OrderConfirmationScreen({
     super.key,
-    required this.menuItems,
-    required this.cart,
-    required this.customerNotes,
+    required this.order,
   });
-
-  List<Map<String, dynamic>> get orderedItems {
-    return menuItems.where((item) {
-      final String name = item['name'];
-      return (cart[name] ?? 0) > 0;
-    }).toList();
-  }
-
-  double get totalPrice {
-    double total = 0;
-
-    for (final item in menuItems) {
-      final String name = item['name'];
-      final int quantity = cart[name] ?? 0;
-
-      total += item['price'] * quantity;
-    }
-
-    return total;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,9 +57,9 @@ class OrderConfirmationScreen extends StatelessWidget {
 
                   const SizedBox(height: AppSpacing.lg),
 
-                  const QueueNumberCard(
-                    queueNumber: '067',
-                    tableNumber: '02',
+                  QueueNumberCard(
+                    queueNumber: order.queueNumber,
+                    tableNumber: order.tableNumber,
                   ),
 
                   const SizedBox(height: AppSpacing.lg),
@@ -94,26 +71,21 @@ class OrderConfirmationScreen extends StatelessWidget {
 
                   const SizedBox(height: AppSpacing.md),
 
-                  ...orderedItems.map((item) {
-                    final String name = item['name'];
-                    final int quantity = cart[name] ?? 0;
-                    final double subtotal =
-                        item['price'] * quantity;
-
-                    return OrderSummaryRow(
-                      name: name,
-                      quantity: quantity,
-                      subtotal: subtotal,
-                    );
-                  }),
+                  ...order.items.map(
+                    (item) => OrderSummaryRow(
+                      name: item.name,
+                      quantity: item.quantity,
+                      subtotal: item.subtotal,
+                    ),
+                  ),
 
                   const SizedBox(height: AppSpacing.md),
 
                   OrderTotalCard(
-                    total: totalPrice,
+                    total: order.total,
                   ),
 
-                  if (customerNotes.trim().isNotEmpty) ...[
+                  if (order.customerNotes.trim().isNotEmpty) ...[
                     const SizedBox(height: AppSpacing.lg),
 
                     Text(
@@ -134,7 +106,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        customerNotes,
+                        order.customerNotes,
                         style: theme.textTheme.bodyMedium,
                       ),
                     ),
@@ -149,15 +121,15 @@ class OrderConfirmationScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                const OrderStatusScreen(),
+                            builder: (context) => OrderStatusScreen(
+                              order: order,
+                            ),
                           ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.primary,
-                        foregroundColor:
-                            theme.colorScheme.onPrimary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),

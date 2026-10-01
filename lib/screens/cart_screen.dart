@@ -33,12 +33,14 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     super.initState();
+
     cart = Map<String, int>.from(widget.cart);
   }
 
   List<Map<String, dynamic>> get cartItems {
     return widget.menuItems.where((item) {
       final String name = item['name'];
+
       return (cart[name] ?? 0) > 0;
     }).toList();
   }
@@ -83,38 +85,52 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   void returnToMenu() {
-    Navigator.pop(context, cart);
+    Navigator.pop(
+      context,
+      cart,
+    );
   }
 
   Future<void> placeOrder() async {
-    if (_isPlacingOrder || cartItems.isEmpty) return;
+    if (_isPlacingOrder || cartItems.isEmpty) {
+      return;
+    }
 
     setState(() {
       _isPlacingOrder = true;
     });
 
     try {
-      await OrderService.createOrder(
+      final order = await OrderService.createOrder(
         menuItems: widget.menuItems,
         cart: cart,
         customerNotes: _notesController.text.trim(),
         tableNumber: '02',
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
-      Navigator.push(
+      // The order has already been saved successfully,
+      // so the current cart can now be cleared.
+      setState(() {
+        cart.clear();
+        _notesController.clear();
+      });
+
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => OrderConfirmationScreen(
-            menuItems: widget.menuItems,
-            cart: cart,
-            customerNotes: _notesController.text.trim(),
+            order: order,
           ),
         ),
       );
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -135,6 +151,7 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void dispose() {
     _notesController.dispose();
+
     super.dispose();
   }
 
@@ -152,6 +169,7 @@ class _CartScreenState extends State<CartScreen> {
           child: Column(
             children: [
               _buildHeader(),
+
               Expanded(
                 child: cartItems.isEmpty
                     ? CartEmptyState(
@@ -197,6 +215,7 @@ class _CartScreenState extends State<CartScreen> {
               ),
             ),
           ),
+
           Text(
             'Your Cart',
             style: theme.textTheme.titleMedium?.copyWith(
@@ -226,7 +245,9 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ),
 
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(
+          height: AppSpacing.md,
+        ),
 
         ...cartItems.map((item) {
           final String name = item['name'];
@@ -240,13 +261,17 @@ class _CartScreenState extends State<CartScreen> {
           );
         }),
 
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(
+          height: AppSpacing.lg,
+        ),
 
         CustomerNotesField(
           controller: _notesController,
         ),
 
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(
+          height: AppSpacing.lg,
+        ),
 
         CartSummaryCard(
           totalItems: totalItems,
