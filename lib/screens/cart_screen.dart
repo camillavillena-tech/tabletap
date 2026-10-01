@@ -1,4 +1,12 @@
 import 'package:flutter/material.dart';
+
+import '../services/order_service.dart';
+import '../theme.dart';
+import '../widgets/cart_empty_state.dart';
+import '../widgets/cart_item_row.dart';
+import '../widgets/cart_place_order_button.dart';
+import '../widgets/cart_summary_card.dart';
+import '../widgets/customer_notes_field.dart';
 import 'order_confirmation_screen.dart';
 
 class CartScreen extends StatefulWidget {
@@ -20,11 +28,11 @@ class _CartScreenState extends State<CartScreen> {
 
   final TextEditingController _notesController = TextEditingController();
 
+  bool _isPlacingOrder = false;
+
   @override
   void initState() {
     super.initState();
-
-    // Make a copy so changes can be returned to the Menu screen.
     cart = Map<String, int>.from(widget.cart);
   }
 
@@ -48,8 +56,9 @@ class _CartScreenState extends State<CartScreen> {
     for (final item in widget.menuItems) {
       final String name = item['name'];
       final int quantity = cart[name] ?? 0;
+      final double price = (item['price'] as num).toDouble();
 
-      total += item['price'] * quantity;
+      total += price * quantity;
     }
 
     return total;
@@ -77,6 +86,52 @@ class _CartScreenState extends State<CartScreen> {
     Navigator.pop(context, cart);
   }
 
+  Future<void> placeOrder() async {
+    if (_isPlacingOrder || cartItems.isEmpty) return;
+
+    setState(() {
+      _isPlacingOrder = true;
+    });
+
+    try {
+      await OrderService.createOrder(
+        menuItems: widget.menuItems,
+        cart: cart,
+        customerNotes: _notesController.text.trim(),
+        tableNumber: '02',
+      );
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OrderConfirmationScreen(
+            menuItems: widget.menuItems,
+            cart: cart,
+            customerNotes: _notesController.text.trim(),
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to save the order. Please try again.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPlacingOrder = false;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     _notesController.dispose();
@@ -93,15 +148,15 @@ class _CartScreenState extends State<CartScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFFDF8EF),
         body: SafeArea(
           child: Column(
             children: [
               _buildHeader(),
-
               Expanded(
                 child: cartItems.isEmpty
-                    ? _buildEmptyCart()
+                    ? CartEmptyState(
+                        onBackToMenu: returnToMenu,
+                      )
                     : _buildCartContent(),
               ),
             ],
@@ -109,14 +164,25 @@ class _CartScreenState extends State<CartScreen> {
         ),
         bottomNavigationBar: cartItems.isEmpty
             ? null
-            : _buildBottomSection(),
+            : CartPlaceOrderButton(
+                totalPrice: totalPrice,
+                isLoading: _isPlacingOrder,
+                onPressed: placeOrder,
+              ),
       ),
     );
   }
 
   Widget _buildHeader() {
+    final theme = Theme.of(context);
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -124,327 +190,69 @@ class _CartScreenState extends State<CartScreen> {
             alignment: Alignment.centerLeft,
             child: IconButton(
               onPressed: returnToMenu,
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_back_ios_new_rounded,
                 size: 20,
-                color: Color(0xFF290E07),
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ),
-          const Text(
+          Text(
             'Your Cart',
-            style: TextStyle(
-              fontSize: 18,
+            style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
-              color: Color(0xFF290E07),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyCart() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.shopping_cart_outlined,
-              size: 64,
-              color: Color(0xFFAE3C00),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Your cart is empty',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF290E07),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Add something from the menu first.',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF666666),
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: returnToMenu,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFAE3C00),
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Back to Menu'),
-            ),
-          ],
-        ),
       ),
     );
   }
 
   Widget _buildCartContent() {
+    final theme = Theme.of(context);
+
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.lg,
+      ),
       children: [
-        const Text(
+        Text(
           'Order Summary',
-          style: TextStyle(
-            fontSize: 18,
+          style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w700,
-            color: Color(0xFF290E07),
           ),
         ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
 
-        ...cartItems.map(_buildCartItem),
+        ...cartItems.map((item) {
+          final String name = item['name'];
+          final int quantity = cart[name] ?? 0;
 
-        const SizedBox(height: 24),
+          return CartItemRow(
+            item: item,
+            quantity: quantity,
+            onAdd: () => addItem(name),
+            onRemove: () => removeItem(name),
+          );
+        }),
 
-        const Text(
-          'Customer Notes',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF290E07),
-          ),
-        ),
+        const SizedBox(height: AppSpacing.lg),
 
-        const SizedBox(height: 8),
-
-        TextField(
+        CustomerNotesField(
           controller: _notesController,
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: 'Add special instructions...',
-            hintStyle: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF666666),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: Color(0xFFE4E0DB),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: Color(0xFFAE3C00),
-              ),
-            ),
-          ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.lg),
 
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFFE4E0DB),
-            ),
-          ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  const Text(
-                    'Items',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF666666),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '$totalItems',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF290E07),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              const Divider(height: 1),
-
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  const Text(
-                    'Total',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF290E07),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '₱${totalPrice.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFFAE3C00),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        CartSummaryCard(
+          totalItems: totalItems,
+          totalPrice: totalPrice,
         ),
       ],
-    );
-  }
-
-  Widget _buildCartItem(Map<String, dynamic> item) {
-    final String name = item['name'];
-    final int quantity = cart[name] ?? 0;
-    final double price = item['price'];
-    final double subtotal = price * quantity;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE4E0DB),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 58,
-            height: 58,
-            decoration: const BoxDecoration(
-              color: Color(0xFFFFEEE2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              item['icon'],
-              color: const Color(0xFFAE3C00),
-              size: 30,
-            ),
-          ),
-
-          const SizedBox(width: 12),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name.replaceAll('\n', ' '),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '₱${subtotal.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFFAE3C00),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Row(
-            children: [
-              IconButton(
-                onPressed: () {
-                  removeItem(name);
-                },
-                icon: const Icon(
-                  Icons.remove_circle_outline,
-                  color: Color(0xFFAE3C00),
-                ),
-              ),
-
-              Text(
-                '$quantity',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-
-              IconButton(
-                onPressed: () {
-                  addItem(name);
-                },
-                icon: const Icon(
-                  Icons.add_circle,
-                  color: Color(0xFFAE3C00),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomSection() {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(24, 10, 24, 16),
-        color: const Color(0xFFFDF8EF),
-        child: SizedBox(
-          height: 48,
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OrderConfirmationScreen(
-                    menuItems: widget.menuItems,
-                    cart: cart,
-                    customerNotes: _notesController.text.trim(),
-                  ),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFAE3C00),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: Text(
-              'Place Order • ₱${totalPrice.toStringAsFixed(2)}',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
