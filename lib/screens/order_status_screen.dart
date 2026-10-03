@@ -4,6 +4,7 @@ import '../models/order.dart';
 import '../services/order_storage.dart';
 import '../theme.dart';
 import '../widgets/queue_number_card.dart';
+import 'menu_screen.dart';
 
 class OrderStatusScreen extends StatefulWidget {
   final Order order;
@@ -14,11 +15,14 @@ class OrderStatusScreen extends StatefulWidget {
   });
 
   @override
-  State<OrderStatusScreen> createState() => _OrderStatusScreenState();
+  State<OrderStatusScreen> createState() =>
+      _OrderStatusScreenState();
 }
 
-class _OrderStatusScreenState extends State<OrderStatusScreen> {
+class _OrderStatusScreenState
+    extends State<OrderStatusScreen> {
   late Order order;
+
   bool _isRefreshing = false;
 
   @override
@@ -31,17 +35,22 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   }
 
   Future<void> refreshOrder() async {
-    if (_isRefreshing) return;
+    if (_isRefreshing) {
+      return;
+    }
 
     setState(() {
       _isRefreshing = true;
     });
 
-    final savedOrder = await OrderStorage.getOrderById(
+    final savedOrder =
+        await OrderStorage.getOrderById(
       widget.order.id,
     );
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       if (savedOrder != null) {
@@ -50,6 +59,18 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
       _isRefreshing = false;
     });
+  }
+
+  void backToMenu() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MenuScreen(
+          tableNumber: order.tableNumber,
+        ),
+      ),
+      (route) => route.isFirst,
+    );
   }
 
   @override
@@ -66,8 +87,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               child: RefreshIndicator(
                 onRefresh: refreshOrder,
                 child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(
+                  physics:
+                      const AlwaysScrollableScrollPhysics(),
+                  padding:
+                      const EdgeInsets.fromLTRB(
                     AppSpacing.lg,
                     AppSpacing.md,
                     AppSpacing.lg,
@@ -77,18 +100,24 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     Text(
                       'Order Status',
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.headlineSmall,
+                      style:
+                          theme.textTheme.headlineSmall,
                     ),
 
-                    const SizedBox(height: AppSpacing.sm),
+                    const SizedBox(
+                      height: AppSpacing.sm,
+                    ),
 
                     Text(
                       'Track the progress of your order.',
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium,
+                      style:
+                          theme.textTheme.bodyMedium,
                     ),
 
-                    const SizedBox(height: AppSpacing.md),
+                    const SizedBox(
+                      height: AppSpacing.md,
+                    ),
 
                     Align(
                       alignment: Alignment.center,
@@ -100,7 +129,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(
+                                child:
+                                    CircularProgressIndicator(
                                   strokeWidth: 2,
                                 ),
                               )
@@ -113,78 +143,113 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: AppSpacing.md),
-
-                    QueueNumberCard(
-                      queueNumber: order.queueNumber,
-                      tableNumber: order.tableNumber,
+                    const SizedBox(
+                      height: AppSpacing.md,
                     ),
 
-                    const SizedBox(height: AppSpacing.xl),
+                    QueueNumberCard(
+                      queueNumber:
+                          order.queueNumber,
+                      tableNumber:
+                          order.tableNumber,
+                    ),
+
+                    const SizedBox(
+                      height: AppSpacing.xl,
+                    ),
 
                     Text(
                       'Order Progress',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+                      style: theme
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(
+                        fontWeight:
+                            FontWeight.w700,
                       ),
                     ),
 
-                    const SizedBox(height: AppSpacing.md),
+                    const SizedBox(
+                      height: AppSpacing.md,
+                    ),
 
                     _buildStatusStep(
                       context,
                       title: 'Received',
-                      description: 'Your order has been received.',
+                      description:
+                          'Your order has been received.',
                       status: 'Received',
                     ),
 
                     _buildStatusLine(
-                      active: _statusLevel(order.status) >= 2,
+                      active:
+                          _statusLevel(
+                                order.status,
+                              ) >=
+                              2,
                     ),
 
                     _buildStatusStep(
                       context,
                       title: 'Preparing',
-                      description: 'Your order is being prepared.',
+                      description:
+                          'Your order is being prepared.',
                       status: 'Preparing',
                     ),
 
                     _buildStatusLine(
-                      active: _statusLevel(order.status) >= 3,
+                      active:
+                          _statusLevel(
+                                order.status,
+                              ) >=
+                              3,
                     ),
 
                     _buildStatusStep(
                       context,
                       title: 'Ready',
-                      description: 'Your order is ready for pickup.',
+                      description:
+                          'Your order is ready for pickup.',
                       status: 'Ready',
                     ),
 
-                    const SizedBox(height: AppSpacing.xl),
+                    const SizedBox(
+                      height: AppSpacing.xl,
+                    ),
 
-                    _buildStatusMessage(context),
+                    _buildStatusMessage(
+                      context,
+                    ),
 
-                    const SizedBox(height: AppSpacing.xl),
+                    const SizedBox(
+                      height: AppSpacing.xl,
+                    ),
 
                     SizedBox(
                       height: 48,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.popUntil(
-                            context,
-                            (route) => route.isFirst,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary,
-                          foregroundColor: theme.colorScheme.onPrimary,
+                        onPressed: backToMenu,
+                        style:
+                            ElevatedButton.styleFrom(
+                          backgroundColor:
+                              theme
+                                  .colorScheme
+                                  .primary,
+                          foregroundColor:
+                              theme
+                                  .colorScheme
+                                  .onPrimary,
                           elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                          shape:
+                              RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(
+                              10,
+                            ),
                           ),
                         ),
                         child: const Text(
-                          'Back to Home',
+                          'Back to Menu',
                         ),
                       ),
                     ),
@@ -202,9 +267,11 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     switch (status) {
       case 'Preparing':
         return 2;
+
       case 'Ready':
       case 'Completed':
         return 3;
+
       case 'Received':
       default:
         return 1;
@@ -219,26 +286,36 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   }) {
     final theme = Theme.of(context);
 
-    final int currentLevel = _statusLevel(order.status);
-    final int stepLevel = _statusLevel(status);
+    final int currentLevel =
+        _statusLevel(order.status);
 
-    final bool completed = currentLevel > stepLevel;
-    final bool active = currentLevel >= stepLevel;
+    final int stepLevel =
+        _statusLevel(status);
+
+    final bool completed =
+        currentLevel > stepLevel;
+
+    final bool active =
+        currentLevel >= stepLevel;
 
     final Color color = active
         ? theme.colorScheme.primary
         : AppStatusColors.inactive;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
         Container(
           width: 34,
           height: 34,
           decoration: BoxDecoration(
             color: completed
-                ? theme.colorScheme.primary
-                : AppColors.surfaceContainer,
+                ? theme
+                    .colorScheme
+                    .primary
+                : AppColors
+                    .surfaceContainer,
             shape: BoxShape.circle,
             border: Border.all(
               color: color,
@@ -249,7 +326,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               ? Icon(
                   Icons.check,
                   size: 19,
-                  color: theme.colorScheme.onPrimary,
+                  color: theme
+                      .colorScheme
+                      .onPrimary,
                 )
               : Icon(
                   Icons.circle,
@@ -258,7 +337,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 ),
         ),
 
-        const SizedBox(width: AppSpacing.md),
+        const SizedBox(
+          width: AppSpacing.md,
+        ),
 
         Expanded(
           child: Padding(
@@ -266,26 +347,41 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               top: AppSpacing.xs,
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+                  style: theme
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(
+                    fontWeight:
+                        FontWeight.w700,
                     color: active
-                        ? theme.colorScheme.onSurface
-                        : AppStatusColors.inactive,
+                        ? theme
+                            .colorScheme
+                            .onSurface
+                        : AppStatusColors
+                            .inactive,
                   ),
                 ),
 
-                const SizedBox(height: AppSpacing.xs),
+                const SizedBox(
+                  height: AppSpacing.xs,
+                ),
 
                 Text(
                   description,
-                  style: theme.textTheme.labelSmall?.copyWith(
+                  style: theme
+                      .textTheme
+                      .labelSmall
+                      ?.copyWith(
                     color: active
-                        ? AppColors.secondaryText
-                        : AppStatusColors.inactive,
+                        ? AppColors
+                            .secondaryText
+                        : AppStatusColors
+                            .inactive,
                   ),
                 ),
               ],
@@ -311,31 +407,43 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     );
   }
 
-  Widget _buildStatusMessage(BuildContext context) {
+  Widget _buildStatusMessage(
+    BuildContext context,
+  ) {
     final theme = Theme.of(context);
 
     String message;
 
     switch (order.status) {
       case 'Preparing':
-        message = 'Your order is currently being prepared.';
+        message =
+            'Your order is currently being prepared.';
         break;
+
       case 'Ready':
-        message = 'Your order is ready for pickup.';
+        message =
+            'Your order is ready for pickup.';
         break;
+
       case 'Completed':
-        message = 'Your order has been completed.';
+        message =
+            'Your order has been completed.';
         break;
+
       case 'Received':
       default:
-        message = 'Your order is currently waiting to be prepared.';
+        message =
+            'Your order is currently waiting to be prepared.';
     }
 
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(
+        AppSpacing.md,
+      ),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainer,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius:
+            BorderRadius.circular(12),
         border: Border.all(
           color: AppColors.border,
         ),
@@ -344,15 +452,19 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         children: [
           Icon(
             Icons.info_outline_rounded,
-            color: theme.colorScheme.primary,
+            color:
+                theme.colorScheme.primary,
           ),
 
-          const SizedBox(width: AppSpacing.md),
+          const SizedBox(
+            width: AppSpacing.md,
+          ),
 
           Expanded(
             child: Text(
               message,
-              style: theme.textTheme.labelSmall,
+              style:
+                  theme.textTheme.labelSmall,
             ),
           ),
         ],
@@ -360,7 +472,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(
+    BuildContext context,
+  ) {
     final theme = Theme.of(context);
 
     return Padding(
@@ -374,24 +488,33 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         alignment: Alignment.center,
         children: [
           Align(
-            alignment: Alignment.centerLeft,
+            alignment:
+                Alignment.centerLeft,
             child: IconButton(
               onPressed: () {
                 Navigator.pop(context);
               },
               icon: Icon(
-                Icons.arrow_back_ios_new_rounded,
+                Icons
+                    .arrow_back_ios_new_rounded,
                 size: 20,
-                color: theme.colorScheme.onSurface,
+                color: theme
+                    .colorScheme
+                    .onSurface,
               ),
             ),
           ),
 
           Text(
             'TableTap',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w700,
+            style: theme
+                .textTheme
+                .titleMedium
+                ?.copyWith(
+              color:
+                  theme.colorScheme.primary,
+              fontWeight:
+                  FontWeight.w700,
             ),
           ),
         ],

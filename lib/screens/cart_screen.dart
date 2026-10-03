@@ -12,11 +12,13 @@ import 'order_confirmation_screen.dart';
 class CartScreen extends StatefulWidget {
   final List<Map<String, dynamic>> menuItems;
   final Map<String, int> cart;
-
+  final String tableNumber;
+  
   const CartScreen({
     super.key,
     required this.menuItems,
     required this.cart,
+    required this.tableNumber,
   });
 
   @override
@@ -105,7 +107,7 @@ class _CartScreenState extends State<CartScreen> {
         menuItems: widget.menuItems,
         cart: cart,
         customerNotes: _notesController.text.trim(),
-        tableNumber: '02',
+        tableNumber: widget.tableNumber,
       );
 
       if (!mounted) {

@@ -15,6 +15,10 @@ class OrderConfirmationScreen extends StatelessWidget {
     required this.order,
   });
 
+  void backToMenu(BuildContext context) {
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -24,6 +28,7 @@ class OrderConfirmationScreen extends StatelessWidget {
         child: Column(
           children: [
             _buildHeader(context),
+
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(
@@ -39,7 +44,9 @@ class OrderConfirmationScreen extends StatelessWidget {
                     color: AppStatusColors.ready,
                   ),
 
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(
+                    height: AppSpacing.md,
+                  ),
 
                   Text(
                     'Order Confirmed',
@@ -47,7 +54,9 @@ class OrderConfirmationScreen extends StatelessWidget {
                     style: theme.textTheme.headlineSmall,
                   ),
 
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(
+                    height: AppSpacing.sm,
+                  ),
 
                   Text(
                     'Your order has been received.',
@@ -55,21 +64,27 @@ class OrderConfirmationScreen extends StatelessWidget {
                     style: theme.textTheme.bodyMedium,
                   ),
 
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(
+                    height: AppSpacing.lg,
+                  ),
 
                   QueueNumberCard(
                     queueNumber: order.queueNumber,
                     tableNumber: order.tableNumber,
                   ),
 
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(
+                    height: AppSpacing.lg,
+                  ),
 
                   Text(
                     'Order Summary',
                     style: theme.textTheme.titleMedium,
                   ),
 
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(
+                    height: AppSpacing.md,
+                  ),
 
                   ...order.items.map(
                     (item) => OrderSummaryRow(
@@ -79,25 +94,33 @@ class OrderConfirmationScreen extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(
+                    height: AppSpacing.md,
+                  ),
 
                   OrderTotalCard(
                     total: order.total,
                   ),
 
                   if (order.customerNotes.trim().isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(
+                      height: AppSpacing.lg,
+                    ),
 
                     Text(
                       'Customer Notes',
                       style: theme.textTheme.bodyLarge,
                     ),
 
-                    const SizedBox(height: AppSpacing.sm),
+                    const SizedBox(
+                      height: AppSpacing.sm,
+                    ),
 
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(AppSpacing.md),
+                      padding: const EdgeInsets.all(
+                        AppSpacing.md,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.surfaceContainer,
                         borderRadius: BorderRadius.circular(10),
@@ -112,7 +135,9 @@ class OrderConfirmationScreen extends StatelessWidget {
                     ),
                   ],
 
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(
+                    height: AppSpacing.xl,
+                  ),
 
                   SizedBox(
                     height: 48,
@@ -121,42 +146,48 @@ class OrderConfirmationScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => OrderStatusScreen(
+                            builder: (context) =>
+                                OrderStatusScreen(
                               order: order,
                             ),
                           ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: theme.colorScheme.onPrimary,
+                        backgroundColor:
+                            theme.colorScheme.primary,
+                        foregroundColor:
+                            theme.colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius:
+                              BorderRadius.circular(10),
                         ),
                       ),
                       child: Text(
                         'Track Order',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onPrimary,
+                        style:
+                            theme.textTheme.bodyMedium?.copyWith(
+                          color:
+                              theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(
+                    height: AppSpacing.sm,
+                  ),
 
                   TextButton(
                     onPressed: () {
-                      Navigator.popUntil(
-                        context,
-                        (route) => route.isFirst,
-                      );
+                      backToMenu(context);
                     },
                     child: Text(
-                      'Back to Home',
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      'Back to Menu',
+                      style:
+                          theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.w600,
                       ),
@@ -188,7 +219,7 @@ class OrderConfirmationScreen extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: IconButton(
               onPressed: () {
-                Navigator.pop(context);
+                backToMenu(context);
               },
               icon: Icon(
                 Icons.arrow_back_ios_new_rounded,
@@ -197,6 +228,7 @@ class OrderConfirmationScreen extends StatelessWidget {
               ),
             ),
           ),
+
           Text(
             'TableTap',
             style: theme.textTheme.titleMedium?.copyWith(
