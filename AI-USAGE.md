@@ -65,6 +65,19 @@ looks exactly like what it is.
 - **What we kept, what we changed, and why:** We kept the local status update system, but changed the Customer Status design so it could display multiple active orders instead of only opening the newest one.
 - **Commit:** https://github.com/thebeancheese/tabletap/commit/096d8db
 
+  ### 2026-10-03 - Mobile scanner
+Tool: ChatGPT and Claude
+What we asked for: We asked for help adding a mobile scanner to TableTap so customers can scan the table QR code.
+What it gave back: It suggested using the mobile_scanner package and created a scanner screen that opens the camera and reads the scanned code.
+What we kept, what we changed, and why: We kept the scanner approach because it was suitable for our prototype. We changed the screen design to match our TableTap theme, connected the scanned value to the table number, and added handling for invalid scans.
+Commit: https://github.com/camillavillena-tech/tabletap/commit/a4c8f44430b82db6f167fcd2b93f1449d6dca80b
+
+### 2026-10-04 - Order Confirmation interface
+Tool: ChatGPT and Claude
+What we asked for: We asked for help improving the Order Confirmation screen so it would match our Figma design.
+What it gave back: We used some of the suggested code and structure, but I personally worked on the interface and changed the design to match our Figma. I also coded and adjusted the layout, spacing, colors, and text styles to match the values in theme.dart, so the screen would look consistent with the rest of TableTap.
+Commit:https://github.com/camillavillena-tech/tabletap/commit/ea3f3fa43d1aafc9819f7547e697f0a29d40b786
+
 ## 2. Where the AI got it wrong
 
 ### Case 1 - Outdated font name and incorrect font setup
@@ -112,12 +125,13 @@ looks exactly like what it is.
 
 ### Written by me
 
-- **File:**
-- **Commit:**
-- **What it does and why it is built this way:**
-
+- **File:** `lib/screens/order_confirmation_screen.dart`
+- **Commit:** `ea3f3fa43d1aafc9819f7547e697f0a29d40b786`
+- **What it does and why it is built this way:** I worked on the Order Confirmation screen and made it match our Figma design. I used some of the suggested structure, then changed the layout, spacing, colors, and text styles myself. The screen shows the queue number, table number, order summary, total, customer notes, and the Track Order and Back to Menu buttons. I connected it to theme.dart so it uses the same colors, spacing, and text styles as the rest of the app.
+- 
 ### The AI-written part I understand best
 
-- **File:**
-- **Commit:**
-- **What it does and why we kept it:**
+- **File:** `lib/screens/mobile_scanner.dart`, `tabletap/ios/` `tabletap/android/` , `lib/screens/menu_screen.dart`
+
+- **Commit:** `a4c8f44430b82db6f167fcd2b93f1449d6dca80b` , `8fb2c43daf129160f0692b26dc223ac2bcd749c9`
+- **What it does and why we kept it:** The mobile scanner lets customers scan the QR code on their table instead of typing the table number. It uses the mobile_scanner package to open the camera and detect the code. The scanned table number is passed to MenuScreen and then to the Cart so it can be saved with the order. I changed the screen design to match our TableTap theme.  We kept this approach because the package already handles camera access and QR scanning.
