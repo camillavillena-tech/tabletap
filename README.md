@@ -3,7 +3,7 @@
 > A QR-based dine-in ordering app that allows customers to order from their table and lets staff manage incoming orders and order statuses.
 
 **Live demo:** https://thebeancheese.github.io/tabletap/  
-**Demo video:** `docs/05-demo-video.md`  
+**Demo video:** [View the demo video documentation](docs/05-demo-video.md)  
 **Course:** Applications Development and Emerging Technologies (6ADET), Holy Angel University  
 **Authors:** [@thebeancheese](https://github.com/thebeancheese) and [@camillavillena-tech](https://github.com/camillavillena-tech)
 
@@ -15,8 +15,6 @@ personal data.
 ---
 
 ## Screenshots
-
-Put the final screenshots in `docs/assets/` using these filenames:
 
 | QR Scanner | Customer Menu | Order Status |
 | --- | --- | --- |
@@ -53,7 +51,11 @@ flutter pub get
 flutter run -d web-server --web-port 8080
 ```
 
-Then open http://localhost:8080.
+Then open:
+
+```text
+http://localhost:8080
+```
 
 Requires Flutter. This project was developed using Flutter 3.44.2.
 
@@ -62,12 +64,10 @@ When testing the QR scanner in a browser, allow camera access when prompted.
 A valid TableTap QR code should contain a value in this format:
 
 ```text
-TABLE-01
 TABLE-07
-TABLE-03
 ```
 
-The number after `TABLE-` becomes the customer's table number.
+The digits after `TABLE-` represent the customer's table number.
 
 ### Environment variables
 
@@ -93,7 +93,6 @@ configuration is currently needed.
 | [Design system](docs/03-design-system.md) | colors, type, spacing, components |
 | [Weekly reports](docs/04-weekly-reports.md) | what happened each week |
 | [Demo video](docs/05-demo-video.md) | the recording and what it shows |
-| [Start here](START-HERE.md) | how this repo works (delete once you have read it) |
 | [Security and privacy](docs/06-security-and-privacy.md) | the checklist, filled in |
 | [AI usage](AI-USAGE.md) | how AI was used, corrected, and understood during development |
 

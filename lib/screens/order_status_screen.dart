@@ -21,6 +21,7 @@ class OrderStatusScreen extends StatefulWidget {
 
 class _OrderStatusScreenState
     extends State<OrderStatusScreen> {
+      static const Color _doneColor = Color(0xFF5E8C0F);
   late Order order;
 
   bool _isRefreshing = false;
@@ -175,41 +176,33 @@ class _OrderStatusScreenState
 
                     _buildStatusStep(
                       context,
+                      number: 1,
                       title: 'Received',
-                      description:
-                          'Your order has been received.',
+                      description: 'Your order has been received.',
                       status: 'Received',
                     ),
 
                     _buildStatusLine(
-                      active:
-                          _statusLevel(
-                                order.status,
-                              ) >=
-                              2,
+                      active: _statusLevel(order.status) >= 2,
                     ),
 
                     _buildStatusStep(
                       context,
+                      number: 2,
                       title: 'Preparing',
-                      description:
-                          'Your order is being prepared.',
+                      description: 'Your order is being prepared.',
                       status: 'Preparing',
                     ),
 
                     _buildStatusLine(
-                      active:
-                          _statusLevel(
-                                order.status,
-                              ) >=
-                              3,
+                      active: _statusLevel(order.status) >= 3,
                     ),
 
                     _buildStatusStep(
                       context,
+                      number: 3,
                       title: 'Ready',
-                      description:
-                          'Your order is ready for pickup.',
+                      description: 'Your order is ready for pickup.',
                       status: 'Ready',
                     ),
 
@@ -263,125 +256,109 @@ class _OrderStatusScreenState
     );
   }
 
-  int _statusLevel(String status) {
-    switch (status) {
-      case 'Preparing':
-        return 2;
-
-      case 'Ready':
-      case 'Completed':
-        return 3;
-
-      case 'Received':
-      default:
-        return 1;
-    }
+int _statusLevel(String status) {
+  switch (status) {
+    case 'Preparing':
+      return 2;
+    case 'Ready':
+      return 3;
+    case 'Completed':
+      return 4; 
+    case 'Received':
+    default:
+      return 1;
   }
+}
 
-  Widget _buildStatusStep(
+ Widget _buildStatusStep(
     BuildContext context, {
+    required int number,
     required String title,
     required String description,
     required String status,
   }) {
     final theme = Theme.of(context);
-
-    final int currentLevel =
-        _statusLevel(order.status);
-
-    final int stepLevel =
-        _statusLevel(status);
-
-    final bool completed =
-        currentLevel > stepLevel;
-
-    final bool active =
-        currentLevel >= stepLevel;
-
-    final Color color = active
-        ? theme.colorScheme.primary
-        : AppStatusColors.inactive;
-
+ 
+    final int currentLevel = _statusLevel(order.status);
+    final int stepLevel = _statusLevel(status);
+ 
+    final bool completed = currentLevel > stepLevel;
+    final bool current = currentLevel == stepLevel;
+    final bool upcoming = currentLevel < stepLevel;
+ 
+    final Widget circleChild;
+    final Color fill;
+    final Color border;
+ 
+    if (completed) {
+      // Green circle with a white check
+      fill = _doneColor;
+      border = _doneColor;
+      circleChild = const Icon(
+        Icons.check,
+        size: 20,
+        color: Colors.white,
+      );
+    } else if (current) {
+      // Ring with a dot
+      fill = AppColors.surfaceContainer;
+      border = theme.colorScheme.primary;
+      circleChild = Icon(
+        Icons.circle,
+        size: 12,
+        color: theme.colorScheme.primary,
+      );
+    } else {
+      // Grey numbered circle
+      fill = AppStatusColors.inactive;
+      border = AppStatusColors.inactive;
+      circleChild = Text(
+        '$number',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+        ),
+      );
+    }
+ 
     return Row(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           width: 34,
           height: 34,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: completed
-                ? theme
-                    .colorScheme
-                    .primary
-                : AppColors
-                    .surfaceContainer,
+            color: fill,
             shape: BoxShape.circle,
-            border: Border.all(
-              color: color,
-              width: 2,
-            ),
+            border: Border.all(color: border, width: 2),
           ),
-          child: completed
-              ? Icon(
-                  Icons.check,
-                  size: 19,
-                  color: theme
-                      .colorScheme
-                      .onPrimary,
-                )
-              : Icon(
-                  Icons.circle,
-                  size: 12,
-                  color: color,
-                ),
+          child: circleChild,
         ),
-
-        const SizedBox(
-          width: AppSpacing.md,
-        ),
-
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(
-              top: AppSpacing.xs,
-            ),
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: theme
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(
-                    fontWeight:
-                        FontWeight.w700,
-                    color: active
-                        ? theme
-                            .colorScheme
-                            .onSurface
-                        : AppStatusColors
-                            .inactive,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: upcoming
+                        ? AppStatusColors.inactive
+                        : theme.colorScheme.primary,
                   ),
                 ),
-
-                const SizedBox(
-                  height: AppSpacing.xs,
-                ),
-
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   description,
-                  style: theme
-                      .textTheme
-                      .labelSmall
-                      ?.copyWith(
-                    color: active
-                        ? AppColors
-                            .secondaryText
-                        : AppStatusColors
-                            .inactive,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: upcoming
+                        ? AppStatusColors.inactive
+                        : AppColors.secondaryText,
                   ),
                 ),
               ],
@@ -391,92 +368,81 @@ class _OrderStatusScreenState
       ],
     );
   }
-
+ 
+  /// Vertical connector between two steps.
+  /// Wrapped in Align so the 2px width is respected inside the ListView
+  /// (otherwise it stretches across the full screen width).
   Widget _buildStatusLine({
     required bool active,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(
-        left: 16,
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(left: 16), // (34 - 2) / 2
+        width: 2,
+        height: 38,
+        color: active
+            ? tableTapColorScheme.primary
+            : AppStatusColors.inactive,
       ),
-      width: 2,
-      height: 38,
-      color: active
-          ? tableTapColorScheme.primary
-          : AppStatusColors.inactive,
     );
   }
-
+ 
   Widget _buildStatusMessage(
     BuildContext context,
   ) {
     final theme = Theme.of(context);
-
+ 
     String message;
-
+ 
     switch (order.status) {
       case 'Preparing':
-        message =
-            'Your order is currently being prepared.';
+        message = 'Your order is currently being prepared.';
         break;
-
+ 
       case 'Ready':
-        message =
-            'Your order is ready for pickup.';
+        message = 'Your order is ready for pickup.';
         break;
-
+ 
       case 'Completed':
-        message =
-            'Your order has been completed.';
+        message = 'Your order has been completed.';
         break;
-
+ 
       case 'Received':
       default:
-        message =
-            'Your order is currently waiting to be prepared.';
+        message = 'Your order is currently waiting to be prepared.';
     }
-
+ 
     return Container(
-      padding: const EdgeInsets.all(
-        AppSpacing.md,
-      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainer,
-        borderRadius:
-            BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
           Icon(
             Icons.info_outline_rounded,
-            color:
-                theme.colorScheme.primary,
+            color: theme.colorScheme.primary,
           ),
-
-          const SizedBox(
-            width: AppSpacing.md,
-          ),
-
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               message,
-              style:
-                  theme.textTheme.labelSmall,
+              style: theme.textTheme.labelSmall,
             ),
           ),
         ],
       ),
     );
   }
-
+ 
   Widget _buildHeader(
     BuildContext context,
   ) {
     final theme = Theme.of(context);
-
+ 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
@@ -488,33 +454,23 @@ class _OrderStatusScreenState
         alignment: Alignment.center,
         children: [
           Align(
-            alignment:
-                Alignment.centerLeft,
+            alignment: Alignment.centerLeft,
             child: IconButton(
               onPressed: () {
                 Navigator.pop(context);
               },
               icon: Icon(
-                Icons
-                    .arrow_back_ios_new_rounded,
+                Icons.arrow_back_ios_new_rounded,
                 size: 20,
-                color: theme
-                    .colorScheme
-                    .onSurface,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ),
-
           Text(
             'TableTap',
-            style: theme
-                .textTheme
-                .titleMedium
-                ?.copyWith(
-              color:
-                  theme.colorScheme.primary,
-              fontWeight:
-                  FontWeight.w700,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
