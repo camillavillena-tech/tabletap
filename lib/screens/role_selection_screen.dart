@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'mobile_scanner.dart';
 
 //import 'customer_home_screen.dart'; //unused as of the moment, but will be used in the future when the QR scanner is implemented
 
 import 'staff_login_screen.dart';
-import 'mobile_scanner.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -43,7 +43,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ScanToOrderScreen(),
+                    builder: (context) => const MobileScannerScreen(),
                   ),
                 );
                 },

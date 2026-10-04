@@ -1,21 +1,13 @@
-<!--
-  This is your project's front page. Replace every placeholder below.
-  It is the first thing your instructor and any future employer will read, and
-  the live link in it is how your project gets opened for grading.
+# TableTap
 
-  New here? Read START-HERE.md first. Delete this comment when you are done.
--->
+> A QR-based dine-in ordering app that allows customers to order from their table and lets staff manage incoming orders and order statuses.
 
-# App Name
+**Live demo:** https://thebeancheese.github.io/tabletap/  
+**Demo video:** `docs/05-demo-video.md`  
+**Course:** Applications Development and Emerging Technologies (6ADET), Holy Angel University  
+**Authors:** [@thebeancheese](https://github.com/thebeancheese) and [@camillavillena-tech](https://github.com/camillavillena-tech)
 
-> One sentence: what this app does, and who it is for.
-
-**Live demo:** https://thebeancheese.github.io/tabletap/ <!-- GitHub Pages is set up already; replace if you host elsewhere -->
-**Demo video:** `docs/demo.mp4` (link it here once it exists)
-**Course:** Applications Development and Emerging Technologies (6ADET), Holy Angel University
-**Author:** Your Name
-
-This repository lives in the author's own GitHub account and is public on
+This repository lives in the authors' own GitHub account and is public on
 purpose. There is no `student.json` here and there should not be one: see
 `docs/06-security-and-privacy.md` for what a public repo means for secrets and
 personal data.
@@ -24,65 +16,73 @@ personal data.
 
 ## Screenshots
 
-Put two or three real screenshots at phone size in `docs/assets/`, then replace
-this paragraph with them:
+Put the final screenshots in `docs/assets/` using these filenames:
 
-```markdown
-| Home | Detail | Add |
+| QR Scanner | Customer Menu | Order Status |
 | --- | --- | --- |
-| ![Home](docs/assets/screen-home.png) | ![Detail](docs/assets/screen-detail.png) | ![Add](docs/assets/screen-add.png) |
-```
+| ![QR Scanner](docs/assets/screen-qr-scanner.png) | ![Customer Menu](docs/assets/screen-menu.png) | ![Order Status](docs/assets/screen-order-status.png) |
 
-A repo without screenshots reads as abandoned, whatever the code says.
+| Cart | Order Confirmation | Staff Dashboard |
+| --- | --- | --- |
+| ![Cart](docs/assets/screen-cart.png) | ![Order Confirmation](docs/assets/screen-confirmation.png) | ![Staff Dashboard](docs/assets/screen-staff-dashboard.png) |
 
 ## What it does
 
-Three to five bullets. What can a user actually do?
-
-- ...
-- ...
-- ...
+- Allows customers to scan a QR code assigned to a table before entering the menu.
+- Lets customers browse menu items, search and filter by category, add items to a cart, add order notes, and place an order.
+- Gives customers a queue number and allows them to track active orders and view completed orders through Order History.
+- Allows staff to view incoming orders and update their status from Received to Preparing, Ready, and Completed.
+- Stores orders locally so the Customer and Staff sides of the prototype can access the same order information on the same browser or device.
 
 ## Built with
 
 | | |
 | --- | --- |
 | Framework | Flutter (Dart) |
-| State | `setState` / provider / riverpod (say which) |
-| Storage | shared_preferences / Hive / Drift / Firebase / Supabase / other |
-| Other packages | list the ones that matter, with a word on why |
+| State | `setState` |
+| Storage | `shared_preferences` |
+| QR scanner | `mobile_scanner` |
+| Preview | `device_preview` |
+| Typography | Asta Sans |
+| Other packages | See `pubspec.yaml` for the complete package list |
 
 ## Running it yourself
 
 ```bash
 flutter pub get
-cp .env.example .env      # only if your app needs keys, see below
 flutter run -d web-server --web-port 8080
 ```
 
-Then open http://localhost:8080. Requires Flutter (run `flutter --version` and
-put yours here).
+Then open http://localhost:8080.
+
+Requires Flutter. This project was developed using Flutter 3.44.2.
+
+When testing the QR scanner in a browser, allow camera access when prompted.
+
+A valid TableTap QR code should contain a value in this format:
+
+```text
+TABLE-01
+TABLE-07
+TABLE-03
+```
+
+The number after `TABLE-` becomes the customer's table number.
 
 ### Environment variables
 
-This project reads its configuration from a `.env` file that is **not** in the
-repository. Copy `.env.example`, fill in your own values, and never commit the
-result.
+This project currently does not require environment variables, API keys, or
+backend credentials.
 
-| Variable | What it is | Where to get one |
-| --- | --- | --- |
-| `EXAMPLE_API_KEY` | ... | ... |
+TableTap uses local storage through `shared_preferences`, so no `.env`
+configuration is currently needed.
 
 ## Privacy and secrets
 
-Required section. Two or three honest sentences:
-
-- What personal data this app stores, if any, and where it goes.
-- Where the secrets live (`.env` locally, repository secrets in the deploy
-  workflow) and what protects the data on the service side (Firestore rules,
-  Supabase RLS, or "nothing leaves the device").
-- Confirm that all sample data, screenshots and the video contain **no real
-  personal information**.
+- TableTap does not collect or send personal customer information to an external server.
+- Order data is stored locally on the current device or browser using `shared_preferences`, so nothing from the ordering flow leaves the device in the current prototype.
+- The project currently does not use backend credentials or API keys.
+- All sample data, screenshots, and the demo video should contain **no real personal information**.
 
 ## Project documentation
 
@@ -95,25 +95,71 @@ Required section. Two or three honest sentences:
 | [Demo video](docs/05-demo-video.md) | the recording and what it shows |
 | [Start here](START-HERE.md) | how this repo works (delete once you have read it) |
 | [Security and privacy](docs/06-security-and-privacy.md) | the checklist, filled in |
+| [AI usage](AI-USAGE.md) | how AI was used, corrected, and understood during development |
 
 ## Status and what is next
 
-Be honest. What works, what is half done, what you would build next. An honest
-"known issues" section reads better than a claim the reader disproves in thirty
-seconds.
+The main TableTap prototype is functional.
+
+The Customer side currently supports:
+
+- QR-based table assignment
+- Menu browsing, search, and category filtering
+- Cart management
+- Order notes
+- Order confirmation
+- Active order tracking
+- Completed order history
+- Customer exit back to Role Selection
+
+The Staff side currently supports:
+
+- Demo Staff Login
+- Incoming Orders dashboard
+- Order details
+- Order status updates from Received to Preparing, Ready, and Completed
+- Viewing saved local orders created from the Customer side
+
+### Known limitations
+
+TableTap currently uses `shared_preferences` instead of a cloud backend. Because
+of this, Customer and Staff modes share order information only when they are
+using the same browser or device storage.
+
+The Staff Login is for demonstration purposes and is not a production
+authentication system.
+
+Order status changes are refreshed manually on the Customer side instead of
+updating automatically in real time.
+
+### Possible future improvements
+
+- Add Firebase or Supabase for real-time synchronization between Customer and Staff devices.
+- Add proper Staff authentication and account management.
+- Add automatic order status updates and customer notifications.
+- Improve queue number generation for a production environment.
+- Add menu management and item availability controls for staff or administrators.
 
 ## Credits
 
 - Packages: see `pubspec.yaml`
-- Assets, icons, 3D models, sounds: name the author and the licence for each
-- People who helped, and how
+- Flutter Material Icons are used throughout the interface.
+- Asta Sans is used for the project typography.
+- The colors, typography, spacing, and reusable UI styling in `lib/theme.dart` are based on our TableTap Figma prototype.
+- QR scanning is implemented using the `mobile_scanner` package.
+- Local persistence is implemented using the `shared_preferences` package.
+- Device previews use the `device_preview` package.
 
 ## AI use
 
-If you used AI tools while building this, say so in a sentence or two and say
-where. Honest disclosure is the standard in this course and increasingly outside
-it.
+AI tools, including ChatGPT and Claude, were used during development for
+brainstorming, code assistance, debugging, refactoring, and documentation.
+
+AI-generated suggestions were reviewed and modified before being used in the
+project. A detailed record of how AI was used, what was changed, and examples of
+where AI gave incorrect or incomplete suggestions can be found in
+[AI-USAGE.md](AI-USAGE.md).
 
 ## Licence
 
-MIT, see [LICENSE](LICENSE). Change it if you want different terms.
+MIT, see [LICENSE](LICENSE).

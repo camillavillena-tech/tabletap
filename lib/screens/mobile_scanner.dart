@@ -3,14 +3,17 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import 'menu_screen.dart';
 
-class ScanToOrderScreen extends StatefulWidget {
-  const ScanToOrderScreen({super.key});
+class MobileScannerScreen extends StatefulWidget {
+  const MobileScannerScreen({
+    super.key,
+  });
 
   @override
-  State<ScanToOrderScreen> createState() => _ScanToOrderScreenState();
+  State<MobileScannerScreen> createState() =>
+      _MobileScannerScreenState();
 }
 
-class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
+class _MobileScannerScreenState extends State<MobileScannerScreen> {
   static const Color orange = Color(0xFFE85D04);
   static const Color bg = Color(0xFFFFF6EE);
   static const Color dark = Color(0xFF3A2F2A);
@@ -18,7 +21,9 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
   final MobileScannerController _controller = MobileScannerController(
     autoStart: false,
     detectionSpeed: DetectionSpeed.noDuplicates,
-    formats: const [BarcodeFormat.qrCode],
+    formats: const [
+      BarcodeFormat.qrCode,
+    ],
   );
 
   bool _scanning = false;
@@ -32,31 +37,138 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
 
   Future<void> _toggleScan() async {
     if (_scanning) {
-      await _controller.stop();
-    } else {
-      _handled = false;
-      await _controller.start();
+      await _stopScanner();
+      return;
     }
-    setState(() => _scanning = !_scanning);
+
+    _handled = false;
+
+    setState(() {
+      _scanning = true;
+    });
+
+    await WidgetsBinding.instance.endOfFrame;
+
+    if (!mounted) {
+      return;
+    }
+
+    try {
+      await _controller.start();
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _scanning = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to start the camera. Please allow camera access and try again.',
+          ),
+        ),
+      );
+    }
   }
 
-  void _onDetect(BarcodeCapture capture) {
-    if (_handled) return;
-    final code = capture.barcodes.firstOrNull?.rawValue;
-    if (code == null || code.isEmpty) return;
+  Future<void> _stopScanner() async {
+    try {
+      await _controller.stop();
+    } catch (_) {}
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _scanning = false;
+    });
+  }
+
+  Future<void> _onDetect(BarcodeCapture capture) async {
+    if (_handled) {
+      return;
+    }
+
+    if (capture.barcodes.isEmpty) {
+      return;
+    }
+
+    final String? code = capture.barcodes.first.rawValue;
+
+    if (code == null || code.isEmpty) {
+      return;
+    }
+
+    final String? tableNumber = _getTableNumber(code);
+
+    if (tableNumber == null) {
+      _showInvalidQrMessage();
+      return;
+    }
 
     _handled = true;
-    _controller.stop();
-    setState(() => _scanning = false);
 
-    _goToMenu();
+    await _controller.stop();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _scanning = false;
+    });
+
+    _goToMenu(tableNumber);
   }
 
-  void _goToMenu() {
+  String? _getTableNumber(String code) {
+    final RegExp tablePattern = RegExp(
+      r'^TABLE-(\d+)$',
+      caseSensitive: false,
+    );
+
+    final match = tablePattern.firstMatch(
+      code.trim(),
+    );
+
+    if (match == null) {
+      return null;
+    }
+
+    return match.group(1);
+  }
+
+  void _showInvalidQrMessage() {
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Invalid TableTap QR code.',
+        ),
+      ),
+    );
+  }
+
+  void _goToMenu(String tableNumber) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const MenuScreen()),
+      MaterialPageRoute(
+        builder: (_) => MenuScreen(
+          tableNumber: tableNumber,
+        ),
+      ),
     );
+  }
+
+  void _goToDemoMenu() {
+    _goToMenu('02');
   }
 
   @override
@@ -66,18 +178,26 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top bar
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+              padding: const EdgeInsets.fromLTRB(
+                8,
+                8,
+                8,
+                0,
+              ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                      ),
                       color: Colors.black,
-                      onPressed: () => Navigator.maybePop(context),
+                      onPressed: () {
+                        Navigator.maybePop(context);
+                      },
                     ),
                   ),
                   const Text(
@@ -94,10 +214,15 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
 
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                ),
                 child: Column(
                   children: [
-                    const SizedBox(height: 56),
+                    const SizedBox(
+                      height: 56,
+                    ),
+
                     const Text(
                       'Scan to order',
                       style: TextStyle(
@@ -106,9 +231,14 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 10),
+
+                    const SizedBox(
+                      height: 10,
+                    ),
+
                     Text(
-                      'Scan the QR code on your table to see\nthe menu and place your order',
+                      'Scan the QR code on your table to see\n'
+                      'the menu and place your order',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
@@ -116,12 +246,16 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
                         color: Colors.grey.shade600,
                       ),
                     ),
-                    const SizedBox(height: 32),
 
-                    // Scanner box
+                    const SizedBox(
+                      height: 32,
+                    ),
+
                     Center(
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 230),
+                        constraints: const BoxConstraints(
+                          maxWidth: 230,
+                        ),
                         child: AspectRatio(
                           aspectRatio: 1,
                           child: Container(
@@ -129,7 +263,9 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
                               color: dark,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                  color: const Color(0xFFD9C7B8), width: 1.5),
+                                color: const Color(0xFFD9C7B8),
+                                width: 1.5,
+                              ),
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(6),
@@ -141,8 +277,19 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
                                       controller: _controller,
                                       onDetect: _onDetect,
                                       fit: BoxFit.cover,
+                                    )
+                                  else
+                                    const Center(
+                                      child: Icon(
+                                        Icons.qr_code_scanner_rounded,
+                                        size: 72,
+                                        color: Colors.white70,
+                                      ),
                                     ),
-                                  const CustomPaint(painter: _CornerPainter()),
+
+                                  const CustomPaint(
+                                    painter: _CornerPainter(),
+                                  ),
                                 ],
                               ),
                             ),
@@ -150,9 +297,11 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 56),
 
-                    // Scan button
+                    const SizedBox(
+                      height: 56,
+                    ),
+
                     SizedBox(
                       width: double.infinity,
                       height: 52,
@@ -167,7 +316,9 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
                           ),
                         ),
                         child: Text(
-                          _scanning ? 'Stop Scanning' : 'Scan QR Code',
+                          _scanning
+                              ? 'Stop Scanning'
+                              : 'Scan QR Code',
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -175,7 +326,11 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 14),
+
+                    const SizedBox(
+                      height: 14,
+                    ),
+
                     Text(
                       'Unable to scan? Ask the staff member for help',
                       textAlign: TextAlign.center,
@@ -184,31 +339,39 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
                         color: Colors.grey.shade600,
                       ),
                     ),
-                    const SizedBox(height: 20),
 
-                    // DEMO ONLY: skip scanning and go straight to the menu.
+                    const SizedBox(
+                      height: 20,
+                    ),
+
                     SizedBox(
                       width: double.infinity,
                       height: 48,
                       child: OutlinedButton(
-                        onPressed: _goToMenu,
+                        onPressed: _goToDemoMenu,
                         style: OutlinedButton.styleFrom(
                           foregroundColor: orange,
-                          side: const BorderSide(color: orange, width: 1.5),
+                          side: const BorderSide(
+                            color: orange,
+                            width: 1.5,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                         child: const Text(
                           'Go to Menu (For Demonstration Purposes)',
-                          style: TextStyle(   
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+
+                    const SizedBox(
+                      height: 24,
+                    ),
                   ],
                 ),
               ),
@@ -220,36 +383,81 @@ class _ScanToOrderScreenState extends State<ScanToOrderScreen> {
   }
 }
 
-/// Orange rounded corner brackets for the viewfinder.
 class _CornerPainter extends CustomPainter {
   const _CornerPainter();
 
   @override
-  void paint(Canvas canvas, Size size) {
+  void paint(
+    Canvas canvas,
+    Size size,
+  ) {
     final paint = Paint()
       ..color = const Color(0xFFE85D04)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;
 
-    const inset = 20.0; // distance from box edge
-    const len = 34.0; // bracket arm length
-    const r = 12.0; // corner radius
+    const double inset = 20;
+    const double len = 34;
+    const double r = 12;
 
-    final l = inset, t = inset, rt = size.width - inset, b = size.height - inset;
+    final double l = inset;
+    final double t = inset;
+    final double rt = size.width - inset;
+    final double b = size.height - inset;
 
-    Path corner(double x, double y, double dx, double dy) => Path()
-      ..moveTo(x + dx * len, y)
-      ..lineTo(x + dx * r, y)
-      ..quadraticBezierTo(x, y, x, y + dy * r)
-      ..lineTo(x, y + dy * len);
+    final path = Path();
 
-    canvas.drawPath(corner(l, t, 1, 1), paint); // top-left
-    canvas.drawPath(corner(rt, t, -1, 1), paint); // top-right
-    canvas.drawPath(corner(l, b, 1, -1), paint); // bottom-left
-    canvas.drawPath(corner(rt, b, -1, -1), paint); // bottom-right
+    path.moveTo(l + len, t);
+    path.lineTo(l + r, t);
+    path.quadraticBezierTo(
+      l,
+      t,
+      l,
+      t + r,
+    );
+    path.lineTo(l, t + len);
+
+    path.moveTo(rt - len, t);
+    path.lineTo(rt - r, t);
+    path.quadraticBezierTo(
+      rt,
+      t,
+      rt,
+      t + r,
+    );
+    path.lineTo(rt, t + len);
+
+    path.moveTo(l, b - len);
+    path.lineTo(l, b - r);
+    path.quadraticBezierTo(
+      l,
+      b,
+      l + r,
+      b,
+    );
+    path.lineTo(l + len, b);
+
+    path.moveTo(rt, b - len);
+    path.lineTo(rt, b - r);
+    path.quadraticBezierTo(
+      rt,
+      b,
+      rt - r,
+      b,
+    );
+    path.lineTo(rt - len, b);
+
+    canvas.drawPath(
+      path,
+      paint,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(
+    covariant CustomPainter oldDelegate,
+  ) {
+    return false;
+  }
 }

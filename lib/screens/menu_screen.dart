@@ -8,54 +8,46 @@ import 'cart_screen.dart';
 import 'customer_orders_screen.dart';
 
 class MenuScreen extends StatefulWidget {
+  final String tableNumber;
+
   const MenuScreen({
     super.key,
+    required this.tableNumber,
   });
 
   @override
-  State<MenuScreen> createState() =>
-      _MenuScreenState();
+  State<MenuScreen> createState() => _MenuScreenState();
 }
 
-class _MenuScreenState
-    extends State<MenuScreen> {
-  final TextEditingController
-      _searchController =
+class _MenuScreenState extends State<MenuScreen> {
+  final TextEditingController _searchController =
       TextEditingController();
 
   String selectedCategory = 'All';
 
   final Map<String, int> cart = {};
 
-  List<Map<String, dynamic>>
-      get filteredItems {
-    final search = _searchController
-        .text
-        .trim()
-        .toLowerCase();
+  List<Map<String, dynamic>> get filteredItems {
+    final search = _searchController.text.trim().toLowerCase();
 
     return menuItems.where((item) {
       final categoryMatches =
           selectedCategory == 'All' ||
-              item['category'] ==
-                  selectedCategory;
+          item['category'] == selectedCategory;
 
-      final searchMatches =
-          item['name']
-              .toString()
-              .toLowerCase()
-              .contains(search);
+      final searchMatches = item['name']
+          .toString()
+          .toLowerCase()
+          .contains(search);
 
-      return categoryMatches &&
-          searchMatches;
+      return categoryMatches && searchMatches;
     }).toList();
   }
 
   int get totalCartItems {
     return cart.values.fold(
       0,
-      (total, quantity) =>
-          total + quantity,
+      (total, quantity) => total + quantity,
     );
   }
 
@@ -63,14 +55,10 @@ class _MenuScreenState
     double total = 0;
 
     for (final item in menuItems) {
-      final String name =
-          item['name'];
+      final String name = item['name'];
+      final int quantity = cart[name] ?? 0;
 
-      final int quantity =
-          cart[name] ?? 0;
-
-      total +=
-          item['price'] * quantity;
+      total += item['price'] * quantity;
     }
 
     return total;
@@ -78,23 +66,18 @@ class _MenuScreenState
 
   void addToCart(String name) {
     setState(() {
-      cart[name] =
-          (cart[name] ?? 0) + 1;
+      cart[name] = (cart[name] ?? 0) + 1;
     });
   }
 
-  void removeFromCart(
-    String name,
-  ) {
+  void removeFromCart(String name) {
     setState(() {
-      final quantity =
-          cart[name] ?? 0;
+      final quantity = cart[name] ?? 0;
 
       if (quantity <= 1) {
         cart.remove(name);
       } else {
-        cart[name] =
-            quantity - 1;
+        cart[name] = quantity - 1;
       }
     });
   }
@@ -104,15 +87,13 @@ class _MenuScreenState
       return;
     }
 
-    final updatedCart =
-        await Navigator.push<
-            Map<String, int>>(
+    final updatedCart = await Navigator.push<Map<String, int>>(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            CartScreen(
+        builder: (context) => CartScreen(
           menuItems: menuItems,
           cart: cart,
+          tableNumber: widget.tableNumber,
         ),
       ),
     );
@@ -126,8 +107,7 @@ class _MenuScreenState
     }
   }
 
-  Future<void>
-      openOrderStatus() async {
+  Future<void> openOrderStatus() async {
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -137,9 +117,54 @@ class _MenuScreenState
     );
   }
 
-  void handleBottomNavigation(
-    int index,
-  ) {
+  Future<void> confirmExitCustomerMode() async {
+    final shouldExit = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Exit Customer Mode?',
+          ),
+          content: const Text(
+            'You will return to the role selection screen.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  false,
+                );
+              },
+              child: const Text(
+                'Cancel',
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  true,
+                );
+              },
+              child: const Text(
+                'Exit',
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldExit == true && mounted) {
+      Navigator.popUntil(
+        context,
+        (route) => route.isFirst,
+      );
+    }
+  }
+
+  void handleBottomNavigation(int index) {
     if (index == 0) {
       return;
     }
@@ -161,29 +186,28 @@ class _MenuScreenState
   }
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFFDF8EF),
+      backgroundColor: const Color(0xFFFDF8EF),
       body: SafeArea(
         child: Column(
           children: [
             _buildHeader(),
 
+            _buildTableIndicator(),
+
+            const SizedBox(
+              height: 8,
+            ),
+
             _buildSearchBar(),
 
             MenuCategoryBar(
-              categories:
-                  menuCategories,
-              selectedCategory:
-                  selectedCategory,
-              onSelected:
-                  (category) {
+              categories: menuCategories,
+              selectedCategory: selectedCategory,
+              onSelected: (category) {
                 setState(() {
-                  selectedCategory =
-                      category;
+                  selectedCategory = category;
                 });
               },
             ),
@@ -193,67 +217,58 @@ class _MenuScreenState
             ),
 
             Expanded(
-              child:
-                  _buildMenuList(),
+              child: _buildMenuList(),
             ),
           ],
         ),
       ),
-      bottomNavigationBar:
-          _buildBottomSection(),
+      bottomNavigationBar: _buildBottomSection(),
     );
   }
 
   Widget _buildHeader() {
     return Padding(
-      padding:
-          const EdgeInsets.fromLTRB(
+      padding: const EdgeInsets.fromLTRB(
         24,
         16,
         20,
         12,
       ),
       child: Stack(
-        alignment:
-            Alignment.center,
+        alignment: Alignment.center,
         children: [
           const Center(
             child: Text(
               'TableTap',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight:
-                    FontWeight.w700,
-                color:
-                    Color(0xFFED5A00),
+                fontWeight: FontWeight.w700,
+                color: Color(0xFFED5A00),
               ),
             ),
           ),
 
           Align(
-            alignment:
-                Alignment.centerRight,
+            alignment: Alignment.centerRight,
             child: Container(
               width: 34,
               height: 34,
-              decoration:
-                  BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
-                shape:
-                    BoxShape.circle,
-                border:
-                    Border.all(
-                  color: const Color(
-                    0xFFE5E5E5,
-                  ),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFFE5E5E5),
                 ),
               ),
-              child: const Icon(
-                Icons
-                    .notifications_none_rounded,
-                size: 20,
-                color:
-                    Color(0xFF290E07),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                tooltip: 'Exit Customer Mode',
+                onPressed: confirmExitCustomerMode,
+                icon: const Icon(
+                  Icons.logout_rounded,
+                  size: 19,
+                  color: Color(0xFF290E07),
+                ),
               ),
             ),
           ),
@@ -262,63 +277,88 @@ class _MenuScreenState
     );
   }
 
+  Widget _buildTableIndicator() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 24,
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: const Color(0xFFE8B99F),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.table_restaurant_rounded,
+              size: 18,
+              color: Color(0xFFAE3C00),
+            ),
+
+            const SizedBox(
+              width: 7,
+            ),
+
+            Text(
+              'Table ${widget.tableNumber}',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF290E07),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSearchBar() {
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 24,
       ),
       child: SizedBox(
         height: 42,
         child: TextField(
-          controller:
-              _searchController,
+          controller: _searchController,
           onChanged: (_) {
             setState(() {});
           },
-          decoration:
-              InputDecoration(
-            hintText:
-                'Search menu...',
-            hintStyle:
-                const TextStyle(
+          decoration: InputDecoration(
+            hintText: 'Search menu...',
+            hintStyle: const TextStyle(
               fontSize: 13,
-              color:
-                  Color(0xFF666666),
+              color: Color(0xFF666666),
             ),
-            contentPadding:
-                const EdgeInsets
-                    .symmetric(
+            contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
             ),
-            suffixIcon:
-                const Icon(
+            suffixIcon: const Icon(
               Icons.search_rounded,
-              color:
-                  Color(0xFFED5A00),
+              color: Color(0xFFED5A00),
             ),
             filled: true,
             fillColor: Colors.white,
-            enabledBorder:
-                OutlineInputBorder(
-              borderRadius:
-                  BorderRadius
-                      .circular(9),
-              borderSide:
-                  const BorderSide(
-                color:
-                    Color(0xFFE8B99F),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(9),
+              borderSide: const BorderSide(
+                color: Color(0xFFE8B99F),
               ),
             ),
-            focusedBorder:
-                OutlineInputBorder(
-              borderRadius:
-                  BorderRadius
-                      .circular(9),
-              borderSide:
-                  const BorderSide(
-                color:
-                    Color(0xFFAE3C00),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(9),
+              borderSide: const BorderSide(
+                color: Color(0xFFAE3C00),
                 width: 1.5,
               ),
             ),
@@ -334,40 +374,31 @@ class _MenuScreenState
         child: Text(
           'No menu items found.',
           style: TextStyle(
-            color:
-                Color(0xFF666666),
+            color: Color(0xFF666666),
           ),
         ),
       );
     }
 
     return ListView.separated(
-      padding:
-          const EdgeInsets.fromLTRB(
+      padding: const EdgeInsets.fromLTRB(
         24,
         4,
         24,
         110,
       ),
-      itemCount:
-          filteredItems.length,
-      separatorBuilder:
-          (_, _) =>
-              const SizedBox(
+      itemCount: filteredItems.length,
+      separatorBuilder: (_, _) => const SizedBox(
         height: 12,
       ),
-      itemBuilder:
-          (context, index) {
-        final item =
-            filteredItems[index];
+      itemBuilder: (context, index) {
+        final item = filteredItems[index];
 
-        final String name =
-            item['name'];
+        final String name = item['name'];
 
         return MenuItemCard(
           item: item,
-          quantity:
-              cart[name] ?? 0,
+          quantity: cart[name] ?? 0,
           onAdd: () {
             addToCart(name);
           },
@@ -381,19 +412,15 @@ class _MenuScreenState
 
   Widget _buildBottomSection() {
     return Container(
-      color:
-          const Color(0xFFFDF8EF),
+      color: const Color(0xFFFDF8EF),
       child: SafeArea(
         top: false,
         child: Column(
-          mainAxisSize:
-              MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min,
           children: [
             if (totalCartItems > 0)
               Padding(
-                padding:
-                    const EdgeInsets
-                        .fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   24,
                   8,
                   24,
@@ -401,40 +428,26 @@ class _MenuScreenState
                 ),
                 child: Container(
                   height: 48,
-                  decoration:
-                      BoxDecoration(
-                    color:
-                        const Color(
-                      0xFFED5A00,
-                    ),
-                    borderRadius:
-                        BorderRadius
-                            .circular(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFED5A00),
+                    borderRadius: BorderRadius.circular(
                       11,
                     ),
                   ),
                   child: InkWell(
-                    borderRadius:
-                        BorderRadius
-                            .circular(
+                    borderRadius: BorderRadius.circular(
                       11,
                     ),
                     onTap: openCart,
                     child: Padding(
-                      padding:
-                          const EdgeInsets
-                              .symmetric(
-                        horizontal:
-                            14,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
                       ),
                       child: Row(
                         children: [
                           const Icon(
-                            Icons
-                                .shopping_cart,
-                            color:
-                                Colors
-                                    .white,
+                            Icons.shopping_cart,
+                            color: Colors.white,
                             size: 21,
                           ),
 
@@ -446,16 +459,10 @@ class _MenuScreenState
                             'View Cart '
                             '($totalCartItems '
                             '${totalCartItems == 1 ? 'item' : 'items'})',
-                            style:
-                                const TextStyle(
-                              color:
-                                  Colors
-                                      .white,
-                              fontSize:
-                                  13,
-                              fontWeight:
-                                  FontWeight
-                                      .w500,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
 
@@ -463,16 +470,10 @@ class _MenuScreenState
 
                           Text(
                             '₱${cartTotal.toStringAsFixed(2)}',
-                            style:
-                                const TextStyle(
-                              color:
-                                  Colors
-                                      .white,
-                              fontSize:
-                                  12,
-                              fontWeight:
-                                  FontWeight
-                                      .w500,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -484,8 +485,7 @@ class _MenuScreenState
 
             AppBottomNav(
               currentIndex: 0,
-              onTap:
-                  handleBottomNavigation,
+              onTap: handleBottomNavigation,
             ),
           ],
         ),
