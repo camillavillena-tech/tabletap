@@ -34,11 +34,6 @@ the same locally stored order data through `shared_preferences`.
 
 ## Video file size
 
-The final recording is approximately 28 MB, which is already small enough to be
-included in the repository without additional compression.
+The final repository copy of the demo video is approximately 3.2 MB after being compressed to 720p for easier playback and repository storage.
 
-If a future recording becomes too large, it can be compressed using FFmpeg:
-
-```bash
-ffmpeg -i input.mp4 -vcodec libx264 -crf 28 -preset slow \
-       -vf scale=-2:720 -acodec aac -b:a 96k demo.mp4
+A Google Drive backup link is also provided above in case GitHub does not preview the video correctly.
