@@ -1,7 +1,8 @@
 # Demo video
 
-**File:** `demo.mp4` in this folder, or the hosted link once uploaded  
-**Length:** 4 minutes and 50 seconds
+**File:** [Watch the demo from the repository](demo.mp4)  
+**Backup link:** If the video does not load properly from GitHub, you can watch it here: [Google Drive link](https://drive.google.com/file/d/163F1vm_2pRrn32sirQcMCNDgmZW8qDhH/view?usp=sharing)  
+**Length:** 4 minutes and 50 seconds  
 **Recorded on:** desktop browser using the Flutter web version of TableTap
 
 ## What it shows
