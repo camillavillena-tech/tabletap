@@ -94,14 +94,6 @@ This project was developed using Flutter 3.44.2.
 
 When testing the QR scanner in a browser, allow camera access when prompted.
 
-A valid TableTap QR code should contain a value in this format:
-
-```text
-TABLE-07
-```
-
-The digits after `TABLE-` represent the customer's table number.
-
 ### Environment variables
 
 This project currently does not require environment variables, API keys, or backend credentials.
@@ -136,6 +128,42 @@ The Role Selection screen is the starting point of the app.
 The QR Scanner uses `mobile_scanner` to read a TableTap table code.
 
 After a valid code is scanned, the app opens the Menu and carries the detected table number into the order flow.
+
+#### Creating a TableTap QR code
+
+TableTap does not require a specific QR code image. You can generate your own QR
+code using any QR code generator.
+
+The QR code's **text content must follow this format:**
+
+```text
+TABLE-##
+```
+
+Replace `##` with the table number.
+
+Examples:
+
+```text
+TABLE-01
+TABLE-03
+TABLE-07
+TABLE-12
+```
+
+The app reads the number after `TABLE-` and uses it as the customer's table
+number.
+
+For example, a QR code containing:
+
+```text
+TABLE-07
+```
+
+will open the Customer Menu for **Table 07**.
+
+Make sure the QR code contains only the TableTap table code as its text content.
+A website URL or unrelated text will not be accepted by the scanner.
 
 ### Customer Menu
 
