@@ -7,38 +7,33 @@
 
 ## What it shows
 
-- 0:00 Introduction to TableTap and what the app is for
-- 0:35 Customer Role Selection and QR Scanner
-- 0:40 Scanning a table QR code and opening the Menu
-- 1:00 Browsing the Menu and adding items to the Cart
-- 1:15 Adding order notes and placing the order
-- 1:43 Order Confirmation and Order Status
-- 2:25 Staff Login and Staff Dashboard
-- 3:00 Opening the same order and updating its status
-- 3:32 Returning to the Customer side and refreshing the order
-- 3:40 Slight pause for QR-scanning 
-- 4:10 Completed Order History
-- 4:20 Closing and current project limitations
+A short list, in order, so a viewer can skip to what they need:
 
-The video covers the main TableTap customer flow from scanning a table QR code
-up to placing and tracking an order.
+- 0:00 what the app is and who it is for
+- 0:20 ...
+- 1:10 ...
 
-It also shows the Staff side, where incoming orders can be viewed and their
-status can be updated from Received to Preparing, Ready, and Completed.
+Cover, in this order: the main user journey end to end, anything that only works
+on a real device (camera, GPS, sensors), and the thing you are proudest of.
 
-The QR scanner is demonstrated using a sample TableTap QR code such as
-`TABLE-03`.
+## Getting it into the repo
 
-One of the main parts shown in the demo is how the Customer and Staff sides use
-the same locally stored order data through `shared_preferences`.
-
-## Video file size
-
-The final recording is approximately 28 MB, which is already small enough to be
-included in the repository without additional compression.
-
-If a future recording becomes too large, it can be compressed using FFmpeg:
+GitHub **blocks any file over 100 MB** and warns over 50 MB, so compress before
+you commit:
 
 ```bash
-ffmpeg -i input.mp4 -vcodec libx264 -crf 28 -preset slow \
+ffmpeg -i raw.mp4 -vcodec libx264 -crf 28 -preset slow \
        -vf scale=-2:720 -acodec aac -b:a 96k demo.mp4
+```
+
+Raise `-crf` (28 to 32) or drop to `-2:480` if it is still too large. If it still
+does not fit, attach it to a **GitHub Release** or upload it unlisted and link it
+here. Never commit the raw capture: git keeps it forever even after you delete
+it.
+
+## Before you record
+
+- Real data off the screen: no classmates' names, numbers, faces or messages.
+- Notifications off.
+- Sensible sample data, not "asdf".
+- One unbroken take per feature. Say what you are doing while you do it.
